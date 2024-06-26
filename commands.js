@@ -2,6 +2,30 @@ import 'dotenv/config';
 import { fakeGameItems } from './game.js';
 import { InstallGlobalCommands } from './utils.js';
 
+// thread command
+const THREAD_COMMAND = {
+  name: 'thread',
+  type: 1,
+  description: 'Lurk Better',
+  options: [
+    {
+      type: 3,
+      name: 'board',
+      description: 'Which Board',
+      required: true,
+    },
+    {
+      type: 4,
+      name: 'limit',
+      description: 'How much',
+      required: false,
+      min_value: 3,
+    },
+  ],
+  integration_types: [0, 1],
+  contexts: [0, 1, 2],
+};
+
 // Wiki command for game lookup
 const WIKI_COMMAND = {
   name: 'wiki',
@@ -48,10 +72,11 @@ const LINK_COMMAND = {
 };
 
 const ALL_COMMANDS = [
+  THREAD_COMMAND,
   WIKI_COMMAND,
   LEADERBOARD_COMMAND,
   PROFILE_COMMAND,
   LINK_COMMAND,
 ];
 
-InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
+InstallGlobalCommands(process.env.APP_ID, process.env.GUILD_ID, ALL_COMMANDS);

@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { verifyKey } from 'discord-interactions';
-import { getFakeUsername } from './game.js';
+import fetch from "node-fetch";
 
 export function VerifyDiscordRequest(clientKey) {
   return function (req, res, buf) {
@@ -26,7 +26,7 @@ export async function DiscordRequest(endpoint, options) {
       Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
       'Content-Type': 'application/json; charset=UTF-8',
       'User-Agent':
-        'DiscordBot (https://github.com/discord/discord-example-app, 1.0.0)',
+        'SchzBot (https://github.com/fadhlanmr/schz-bot, 1.0.0)',
     },
     ...options,
   });
@@ -40,13 +40,16 @@ export async function DiscordRequest(endpoint, options) {
   return res;
 }
 
-export async function InstallGlobalCommands(appId, commands) {
+export async function InstallGlobalCommands(appId, guildId, commands) {
   // API endpoint to overwrite global commands
-  const endpoint = `applications/${appId}/commands`;
+  // ONLY GUILD
+  // https://discord.com/developers/docs/interactions/application-commands#edit-guild-application-command
+  const endpoint = `/applications/${appId}/guilds/${guildId}/commands`;
 
   try {
     // This is calling the bulk overwrite endpoint: https://discord.com/developers/docs/interactions/application-commands#bulk-overwrite-global-application-commands
     await DiscordRequest(endpoint, { method: 'PUT', body: commands });
+    console.log("[COMMAND] done register, ", endpoint);
   } catch (err) {
     console.error(err);
   }

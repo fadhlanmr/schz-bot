@@ -7,6 +7,7 @@ import {
   createPlayerEmbed,
 } from './utils.js';
 import { getFakeProfile, getWikiItem } from './game.js';
+import { getThreadList } from './4ch.js';
 
 // Create an express app
 const app = express();
@@ -38,6 +39,17 @@ app.post('/interactions', async function (req, res) {
    */
   if (type === InteractionType.APPLICATION_COMMAND) {
     const { name } = data;
+
+    if (name === 'thread'){
+      const option = data.options[0];
+      const selectThread = await getThreadList(option.value);
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: {
+          content: `${selectThread.thread} **${htmlclean(selectThread.title)}**: ${htmlclean(selectThread.body)}`,
+        },
+      });
+    }
 
     // "leaderboard" command
     if (name === 'leaderboard') {
@@ -143,3 +155,14 @@ app.post('/interactions', async function (req, res) {
 app.listen(PORT, () => {
   console.log('Listening on port', PORT);
 });
+
+function htmlclean(escapedHTML) {
+  return escapedHTML
+    .replace(/<br>/g, " ")
+    .replace(/(<([^>]+)>)/gi, "")
+    .replace(/&#039;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"');
+};
