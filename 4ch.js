@@ -1,17 +1,6 @@
 import fetch from "node-fetch";
 
-function htmlclean(escapedHTML) {
-  return escapedHTML
-    .replace(/<br>/g, " ")
-    .replace(/(<([^>]+)>)/gi, "")
-    .replace(/&#039;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"');
-}
-
-export async function getThreadList(boardParams) {
+export async function getTopThread(boardParams) {
   const endpoint = `https://a.4cdn.org/${boardParams}/catalog.json`;
   const threadList = [];
 
@@ -35,16 +24,47 @@ export async function getThreadList(boardParams) {
           title: item.sub,
           body: item.com,
           reply: item.replies,
+          filename: item.filename,
+          file: `${item.tim}${item.ext}`,
         };
         threadList.push(threadObj);
       });
     });
     threadList.sort((a, b) => b.reply - a.reply);
-    console.log("--- array sorted ---");
-    return threadList[0];
+    console.log("--- thread sorted ---");
+
+    let resultThread = threadList[0];
+    let returnThread = {
+      thread: resultThread.thread,
+      name: resultThread.thread,
+      value: "",
+      reply: resultThread.reply,
+      image: ""
+    }
+    if (resultThread.filename) {
+      returnThread.image = `https://i.4cdn.org/${boardParams}/${resultThread.file}`
+    }
+    if (resultThread.title) {
+      returnThread.name = `${resultThread.title} - ${resultThread.thread}`
+    }
+    if (resultThread.body) {
+      returnThread.value = `${htmlclean(resultThread.body.substring(0, 500))}`
+    } 
+    return returnThread
   } catch (err) {
     console.error(err);
   }
 }
 
 // console.log(await getThreadList("vt"));
+
+function htmlclean(escapedHTML) {
+  return escapedHTML
+    .replace(/<br>/g, `\n`)
+    .replace(/(<([^>]+)>)/gi, "")
+    .replace(/&#039;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"');
+}

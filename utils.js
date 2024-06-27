@@ -1,32 +1,31 @@
-import 'dotenv/config';
-import { verifyKey } from 'discord-interactions';
+import "dotenv/config";
+import { verifyKey } from "discord-interactions";
 import fetch from "node-fetch";
 
 export function VerifyDiscordRequest(clientKey) {
   return function (req, res, buf) {
-    const signature = req.get('X-Signature-Ed25519');
-    const timestamp = req.get('X-Signature-Timestamp');
+    const signature = req.get("X-Signature-Ed25519");
+    const timestamp = req.get("X-Signature-Timestamp");
     console.log(signature, timestamp, clientKey);
 
     const isValidRequest = verifyKey(buf, signature, timestamp, clientKey);
     if (!isValidRequest) {
-      res.status(401).send('Bad request signature');
-      throw new Error('Bad request signature');
+      res.status(401).send("Bad request signature");
+      throw new Error("Bad request signature");
     }
   };
 }
 
 export async function DiscordRequest(endpoint, options) {
   // append endpoint to root API URL
-  const url = 'https://discord.com/api/v10/' + endpoint;
+  const url = "https://discord.com/api/v10/" + endpoint;
   // Stringify payloads
   if (options.body) options.body = JSON.stringify(options.body);
   const res = await fetch(url, {
     headers: {
       Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
-      'Content-Type': 'application/json; charset=UTF-8',
-      'User-Agent':
-        'SchzBot (https://github.com/fadhlanmr/schz-bot, 1.0.0)',
+      "Content-Type": "application/json; charset=UTF-8",
+      "User-Agent": "SchzBot (https://github.com/fadhlanmr/schz-bot, 1.0.0)",
     },
     ...options,
   });
@@ -48,71 +47,75 @@ export async function InstallGlobalCommands(appId, guildId, commands) {
 
   try {
     // This is calling the bulk overwrite endpoint: https://discord.com/developers/docs/interactions/application-commands#bulk-overwrite-global-application-commands
-    await DiscordRequest(endpoint, { method: 'PUT', body: commands });
+    await DiscordRequest(endpoint, { method: "PUT", body: commands });
     console.log("[COMMAND] done register, ", endpoint);
   } catch (err) {
     console.error(err);
   }
 }
 
+function embedThreadList(board, res, limit) {
+  const embedArr = [];
+  for (let index = 0; index < limit; index++) {
+    if (!res[index].title) {
+      if (!res[index].body) {
+        return {
+          name: `${res[index].thread}`,
+          value: `\n${res[index].reply} interactions \nhttps://boards.4chan.org/${board}/thread/${res[index].thread}`,
+        };
+      } else {
+        return {
+          name: `${htmlclean(res[index].body.substring(0, 400))} - ${res[index].thread}`,
+          value: `\n${res[index].reply} interactions \nhttps://boards.4chan.org/${board}/thread/${res[index].thread}`,
+        };
+      }
+    } else {
+      if (!res[index].body) {
+        return {
+          name: `${res[index].title} - ${res[index].thread}`,
+          value: `\n${res[index].reply} interactions \nhttps://boards.4chan.org/${board}/thread/${res[index].thread}`,
+        };
+      } else {
+        return {
+          name: `${res[index].title} - ${res[index].thread}`,
+          value: `${htmlclean(res[index].body.substring(0, 400))}... \n\n${res[index].reply} interactions \nhttps://boards.4chan.org/${board}/thread/${res[index].thread}`,
+        };
+      }
+    }
+  }
+  return embedArr;
+}
+
+export function createThreadEmbed(board, thread) {
+  let date = new Date()
+  return {
+    type: 'rich',
+    title: thread.name,
+    color: 2067276,
+    description: thread.value,
+    timestamp: date.toLocaleString,
+    url: `https://boards.4channel.org/${board}/thread/${thread.thread}`,
+    footer: {
+      text: `${thread.reply} interactions`,
+      icon_url: "https://s.4cdn.org/image/foundericon.gif"
+    },
+    image: {
+      url: thread.image
+    },
+  };
+}
+
 export function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export async function getServerLeaderboard(guildId) {
-  let members = await getServerMembers(guildId, 3);
-  members = members
-    .map((id, i) => `${i + 1}. <@${id}> (\`${getFakeUsername(i)}\`)`)
-    .join('\n');
-  return `## :trophy: Server Leaderboard\n*This is a very fake leaderboard that just pulls random server members. Pretend it's pulling real game data and it's much more fun* :zany_face:\n\n### This week\n${members}\n\n### All time\n${members}`;
-}
-
-async function getServerMembers(guildId, limit) {
-  const endpoint = `guilds/${guildId}/members?limit=${limit}`;
-
-  try {
-    const res = await DiscordRequest(endpoint, { method: 'GET' });
-    const parsedRes = await res.json();
-    return parsedRes.map((member) => member.user.id);
-  } catch (err) {
-    return console.error(err);
-  }
-}
-
-export function createPlayerEmbed(profile) {
-  return {
-    type: 'rich',
-    title: `${profile.username} Profile (lvl ${profile.stats.level})`,
-    color: 0x968b9f,
-    fields: [
-      {
-        name: `Account created`,
-        value: profile.createdAt,
-        inline: true,
-      },
-      {
-        name: `Last played`,
-        value: profile.lastPlayed,
-        inline: true,
-      },
-      {
-        name: `Global rank`,
-        value: profile.stats.rank,
-        inline: true,
-      },
-      {
-        name: `Combat stats`,
-        value: `:smiley: ${profile.stats.wins} wins / :pensive: ${profile.stats.losses} losses`,
-      },
-      {
-        name: `Realms explored`,
-        value: profile.stats.realms,
-        inline: true,
-      },
-    ],
-    url: 'https://discord.com/developers/docs/intro',
-    thumbnail: {
-      url: 'https://raw.githubusercontent.com/shaydewael/example-app/main/assets/fake-icon.png',
-    },
-  };
+function htmlclean(escapedHTML) {
+  return escapedHTML
+    .replace(/<br>/g, " ")
+    .replace(/(<([^>]+)>)/gi, "")
+    .replace(/&#039;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"');
 }
