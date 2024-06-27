@@ -4,8 +4,14 @@ import { InteractionType, InteractionResponseType } from 'discord-interactions';
 import {
   VerifyDiscordRequest,
   createThreadEmbed,
+  createListThreadEmbed,
+  createReplyEmbed
 } from './utils.js';
-import { getTopThread } from './4ch.js';
+import { 
+  getTopThread, 
+  getListThread, 
+  getTopReply 
+} from './4ch.js';
 
 // Create an express app
 const app = express();
@@ -52,7 +58,40 @@ app.post('/interactions', async function (req, res) {
         data: threadPayloadData,
       });
     }
+
+    if (name === 'threads'){
+      const board = data.options[0];
+      const limit = data.options[1] || {value: 1};
+      const selectThread = await getListThread(board.value);
+      const threadListEmbed = createListThreadEmbed(board.value, selectThread, limit.value);
+      let threadListPayloadData = {
+        embeds: [threadListEmbed],
+        // content: `this shit stupid`,
+      };
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        // data: {content:`${selectThread.name}`},
+        data: threadListPayloadData,
+      });
+    }
+
+    if (name === 'reply'){
+      const board = data.options[0];
+      const thread = data.options[1];
+      const selectReply = await getTopReply(board.value, thread.value);
+      const replyEmbed = createReplyEmbed(selectReply);
+      let replyPayloadData = {
+        embeds: [replyEmbed],
+      };
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        // data: {content:`${selectReply.name}`},
+        data: replyPayloadData,
+      });
+    }
   }
+
+  
 
   // handle button interaction
   if (type === InteractionType.MESSAGE_COMPONENT) {

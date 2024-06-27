@@ -54,38 +54,6 @@ export async function InstallGlobalCommands(appId, guildId, commands) {
   }
 }
 
-function embedThreadList(board, res, limit) {
-  const embedArr = [];
-  for (let index = 0; index < limit; index++) {
-    if (!res[index].title) {
-      if (!res[index].body) {
-        return {
-          name: `${res[index].thread}`,
-          value: `\n${res[index].reply} interactions \nhttps://boards.4chan.org/${board}/thread/${res[index].thread}`,
-        };
-      } else {
-        return {
-          name: `${htmlclean(res[index].body.substring(0, 400))} - ${res[index].thread}`,
-          value: `\n${res[index].reply} interactions \nhttps://boards.4chan.org/${board}/thread/${res[index].thread}`,
-        };
-      }
-    } else {
-      if (!res[index].body) {
-        return {
-          name: `${res[index].title} - ${res[index].thread}`,
-          value: `\n${res[index].reply} interactions \nhttps://boards.4chan.org/${board}/thread/${res[index].thread}`,
-        };
-      } else {
-        return {
-          name: `${res[index].title} - ${res[index].thread}`,
-          value: `${htmlclean(res[index].body.substring(0, 400))}... \n\n${res[index].reply} interactions \nhttps://boards.4chan.org/${board}/thread/${res[index].thread}`,
-        };
-      }
-    }
-  }
-  return embedArr;
-}
-
 export function createThreadEmbed(board, thread) {
   let date = new Date()
   return {
@@ -105,13 +73,67 @@ export function createThreadEmbed(board, thread) {
   };
 }
 
+function embedThreadList(resultThread, limit) {
+  const embedArr = [];
+  for (let index = 0; index < limit; index++) {
+    let returnThread = {
+      name: resultThread[index].thread,
+      value: `${resultThread[index].reply} interactions\n`,
+    }
+    if (resultThread[index].title) {
+      returnThread.name = `${htmlclean(resultThread[index].title)} - ${resultThread[index].thread}`
+    }
+    if (resultThread[index].body) {
+      returnThread.value = `${htmlclean(resultThread[index].body.substring(0, 500))} \n\n${resultThread[index].reply} interactions\n`
+    } 
+    embedArr.push(returnThread);
+  }
+  return embedArr;
+}
+
+export function createListThreadEmbed(board, thread, limit) {
+  let date = new Date()
+  let thread_count = thread.length;
+  return {
+    type: 'rich',
+    title: `/${board}/ Top Thread`,
+    color: 2067276,
+    timestamp: date.toLocaleString,
+    url: `https://boards.4channel.org/${board}`,
+    footer: {
+      text: `${thread_count} Thread(s)`,
+      icon_url: "https://s.4cdn.org/image/foundericon.gif"
+    },
+    fields: embedThreadList(thread, limit)
+  };
+}
+
+export function createReplyEmbed(reply) {
+  let date = new Date()
+  return {
+    type: 'rich',
+    title: reply.name,
+    color: 2067276,
+    description: reply.value,
+    timestamp: date.toLocaleString,
+    url: reply.url,
+    footer: {
+      text: `${reply.reply} mentions`,
+      icon_url: "https://s.4cdn.org/image/foundericon.gif"
+    },
+    image: {
+      url: reply.image
+    },
+  };
+}
+
 export function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function htmlclean(escapedHTML) {
   return escapedHTML
-    .replace(/<br>/g, " ")
+    .replace(/<br>/g, "\n")
     .replace(/(<([^>]+)>)/gi, "")
     .replace(/&#039;/g, "'")
     .replace(/&lt;/g, "<")
