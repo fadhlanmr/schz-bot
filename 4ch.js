@@ -156,8 +156,8 @@ export async function getTopReply(boardParams, threadParams) {
 
     let resultReply = topReply[pos];
     let returnReply = {
-      name: `>>${resultReply.id}`,
-      value: `either deleted or jannies sucks - ${resultReply.time}`,
+      id: resultReply.id,
+      body: "",
       reply: idMap.get(resultReply.id),
       image: "",
       url: `https://boards.4chan.org/${boardParams}/thread/${threadParams}#p${resultReply.id}`
@@ -166,7 +166,7 @@ export async function getTopReply(boardParams, threadParams) {
       returnReply.image = `https://i.4cdn.org/${boardParams}/${resultReply.file}`;
     }
     if (resultReply.body) {
-      returnReply.value = `${htmlclean(resultReply.body.substring(0, 1200))}`;
+      returnReply.body = resultReply.body;
     }
     return returnReply;
   } catch (err) {
@@ -174,7 +174,77 @@ export async function getTopReply(boardParams, threadParams) {
   }
 }
 
-// console.log(await getTopReply("vt", 79320260))
+export async function getListReply(boardParams, threadParams, limitParams) {
+  const endpoint = `https://a.4cdn.org/${boardParams}/thread/${threadParams}.json`;
+  // map for reply check
+  const idMap = new Map();
+  let idRep = 0;
+  const topReply = [];
+
+  try {
+    const res = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      console.log(res.status);
+      throw new Error(JSON.stringify(data));
+    }
+    const data = await res.json();
+    const posts = data.posts;
+    posts.forEach((post) => {
+      let fullFilename = ""
+      // something funny happen, because instead of checking typeof it's checking value null
+      if (post.filename) {
+        fullFilename = `${post.tim}${post.ext}`;
+      }
+      // set post.id.reply = 0
+      idMap.set(post.no, 0);
+      let tempReplyObj = {
+        id: post.no,
+        body: post.com,
+        time: post.time,
+        filename: post.filename,
+        file: fullFilename,
+        reply: 0,
+        image: "",
+        url: `https://boards.4chan.org/${boardParams}/thread/${threadParams}#p${post.no}`
+      };
+      // if reply has body / message
+      if (tempReplyObj.body) {
+        // check if post has mention (>>[number])
+        if ((post = htmlclean(tempReplyObj.body).match(/>>(\d+)/))) {
+          // parse string of mention
+          let tempRes = parseInt(post[1]);
+          // mentioned reply get +1 val in map
+          if(tempRes > threadParams && Number.isInteger(idMap.get(tempRes)) ) {
+              idMap.set(tempRes, idMap.get(tempRes) + 1);
+          }
+        }
+      }
+      topReply.push(tempReplyObj);
+    });
+    console.log("----- done check map val -----");
+    // sort array from map iter for limitParams size
+    let sortedMap = [...idMap.entries()].sort((a, b) => b[1] - a[1]).slice(0,limitParams)
+    console.log("----- done sort map val -----");
+    let resultReply = []
+    for (let index = 0; index < limitParams; index++) {
+      let pos = topReply.map((e) => e.id).indexOf(sortedMap[index][0]);
+      topReply[pos].reply=sortedMap[index][1];
+      topReply[pos].image=`https://i.4cdn.org/${boardParams}/${topReply[pos].file}`
+      resultReply.push(topReply[pos]);
+    }
+    return resultReply
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// console.log(await getListReply("vg", 483690803, 3))
 
 function htmlclean(escapedHTML) {
   return escapedHTML

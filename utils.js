@@ -84,16 +84,16 @@ function embedThreadList(resultThread, limit) {
       returnThread.name = `${htmlclean(resultThread[index].title)} - ${resultThread[index].thread}`
     }
     if (resultThread[index].body) {
-      returnThread.value = `${htmlclean(resultThread[index].body.substring(0, 500))} \n\n${resultThread[index].reply} interactions\n`
+      returnThread.value = `${htmlclean(resultThread[index].body.substring(0, 500))} \n${resultThread[index].reply} interactions\n\n`
     } 
     embedArr.push(returnThread);
   }
   return embedArr;
 }
 
-export function createListThreadEmbed(board, thread, limit) {
+export function createListThreadEmbed(board, threadData, limit) {
   let date = new Date()
-  let thread_count = thread.length;
+  let threadCount = threadData.length;
   return {
     type: 'rich',
     title: `/${board}/ Top Thread`,
@@ -101,29 +101,65 @@ export function createListThreadEmbed(board, thread, limit) {
     timestamp: date.toLocaleString,
     url: `https://boards.4channel.org/${board}`,
     footer: {
-      text: `${thread_count} Thread(s)`,
+      text: `${threadCount} Thread(s)`,
       icon_url: "https://s.4cdn.org/image/foundericon.gif"
     },
-    fields: embedThreadList(thread, limit)
+    fields: embedThreadList(threadData, limit)
   };
 }
 
-export function createReplyEmbed(reply) {
+export function createReplyEmbed(replyData) {
   let date = new Date()
   return {
     type: 'rich',
-    title: reply.name,
+    title: `>>${replyData.id}`,
     color: 2067276,
-    description: reply.value,
+    description: htmlclean(replyData.body.substring(0, 1200)) || "",
     timestamp: date.toLocaleString,
-    url: reply.url,
+    url: replyData.url,
     footer: {
-      text: `${reply.reply} mentions`,
+      text: `${replyData.reply} mentions`,
       icon_url: "https://s.4cdn.org/image/foundericon.gif"
     },
     image: {
-      url: reply.image
+      url: replyData.image
     },
+  };
+}
+
+function embedReplyList(resultReply, limit) {
+  const embedArr = [];
+  for (let index = 0; index < limit; index++) {
+    let returnReply = {
+      name: `>>${resultReply[index].id}`,
+      value: `${resultReply[index].reply} mention(s)\n`,
+    }
+    if (resultReply[index].body) {
+      returnReply.value = `${htmlclean(resultReply[index].body.substring(0, 500))} \n${resultReply[index].reply} mention(s)\n\n`
+    } 
+    if (resultReply[index].filename) {
+      // fancy if-else inline
+      returnReply.value = `${resultReply[index].body ? htmlclean(resultReply[index].body.substring(0, 500)) + ' \n' : ''}${resultReply[index].image} \n${resultReply[index].reply} mention(s)\n\n`
+    }
+    embedArr.push(returnReply);
+  }
+  return embedArr;
+}
+
+export function createListReplyEmbed(board, thread, replyData, limit) {
+  let date = new Date()
+  let replyCount = replyData.length;
+  return {
+    type: 'rich',
+    title: `>>${thread} Top Replies`,
+    color: 2067276,
+    timestamp: date.toLocaleString,
+    url: `https://boards.4channel.org/${board}/thread/${thread}`,
+    footer: {
+      text: `${replyCount} Replies`,
+      icon_url: "https://s.4cdn.org/image/foundericon.gif"
+    },
+    fields: embedReplyList(replyData, limit)
   };
 }
 

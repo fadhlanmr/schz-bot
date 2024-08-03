@@ -66,10 +66,40 @@ const REPLY_COMMAND = {
   contexts: [0, 1, 2],
 };
 
+// thread reply command
+const REPLY_LIST_COMMAND = {
+  name: 'replies',
+  type: 1,
+  description: 'you lurked with list',
+  options: [
+    {
+      type: 3,
+      name: 'board',
+      description: 'Which Board',
+      required: true,
+    },
+    {
+      type: 3,
+      name: 'thread',
+      description: 'what thread',
+      required: true,
+    },
+    {
+      type: 4,
+      name: 'limit',
+      description: 'how much',
+      required: false,
+    },
+  ],
+  integration_types: [0, 1],
+  contexts: [0, 1, 2],
+};
+
 const ALL_COMMANDS = [
   THREAD_COMMAND,
   THREAD_LIST_COMMAND,
-  REPLY_COMMAND
+  REPLY_COMMAND,
+  REPLY_LIST_COMMAND
 ];
 
 InstallGlobalCommands(process.env.APP_ID, process.env.GUILD_ID, ALL_COMMANDS);

@@ -5,12 +5,14 @@ import {
   VerifyDiscordRequest,
   createThreadEmbed,
   createListThreadEmbed,
-  createReplyEmbed
+  createReplyEmbed,
+  createListReplyEmbed
 } from './utils.js';
 import { 
   getTopThread, 
   getListThread, 
-  getTopReply 
+  getTopReply,
+  getListReply
 } from './4ch.js';
 
 // Create an express app
@@ -54,7 +56,7 @@ app.post('/interactions', async function (req, res) {
       };
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        // data: {content:`${selectThread.name}`},
+        // data: {content:`${selectThread.thread}`},
         data: threadPayloadData,
       });
     }
@@ -70,7 +72,7 @@ app.post('/interactions', async function (req, res) {
       };
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        // data: {content:`${selectThread.name}`},
+        // data: {content:`${selectThread.id}`},
         data: threadListPayloadData,
       });
     }
@@ -85,14 +87,30 @@ app.post('/interactions', async function (req, res) {
       };
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        // data: {content:`${selectReply.name}`},
+        // data: {content:`${selectReply.id}`},
         data: replyPayloadData,
       });
     }
+
+    if (name === 'replies'){
+      const board = data.options[0];
+      const thread = data.options[1];
+      const limit = data.options[2] || {value: 1};
+      const selectReply = await getListReply(board.value, thread.value, limit.value);
+      let replyEmbed = {}
+      if (limit.value == 1) {replyEmbed = createReplyEmbed(selectReply[0])}
+      else {replyEmbed = createListReplyEmbed(board.value, thread.value, selectReply, limit.value)};
+      let replyListPayloadData = {
+        embeds: [replyEmbed],
+      };
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        // data: {content:`${selectReply.id}`},
+        data: replyListPayloadData,
+      });
+    }
   }
-
   
-
   // handle button interaction
   if (type === InteractionType.MESSAGE_COMPONENT) {
     const profile = "a";
@@ -109,14 +127,3 @@ app.post('/interactions', async function (req, res) {
 app.listen(PORT, () => {
   console.log('Listening on port', PORT);
 });
-
-function htmlclean(escapedHTML) {
-  return escapedHTML
-    .replace(/<br>/g, " ")
-    .replace(/(<([^>]+)>)/gi, "")
-    .replace(/&#039;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"');
-};
