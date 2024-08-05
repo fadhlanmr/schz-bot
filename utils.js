@@ -60,7 +60,7 @@ export function createThreadEmbed(board, thread) {
     type: 'rich',
     title: thread.name,
     color: 2067276,
-    description: thread.value,
+    description: thread.body,
     timestamp: date.toLocaleString,
     url: `https://boards.4channel.org/${board}/thread/${thread.thread}`,
     footer: {

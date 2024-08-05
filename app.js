@@ -9,10 +9,8 @@ import {
   createListReplyEmbed
 } from './utils.js';
 import { 
-  getTopThread, 
-  getListThread, 
-  getTopReply,
-  getListReply
+  getThreads,
+  getReply
 } from './4ch.js';
 
 // Create an express app
@@ -48,8 +46,11 @@ app.post('/interactions', async function (req, res) {
 
     if (name === 'thread'){
       const board = data.options[0];
-      const selectThread = await getTopThread(board.value);
-      const threadEmbed = createThreadEmbed(board.value, selectThread);
+      const limit = data.options[1] || {value: 1};
+      const selectThread = await getThreads(board.value, limit.value);
+      let threadEmbed = {}
+      if (limit.value == 1) {threadEmbed = createThreadEmbed(board.value, selectThread)}
+      else {threadEmbed = createListThreadEmbed(board.value, selectThread, limit.value)};
       let threadPayloadData = {
         embeds: [threadEmbed],
         // content: `this shit stupid`,
@@ -61,27 +62,14 @@ app.post('/interactions', async function (req, res) {
       });
     }
 
-    if (name === 'threads'){
-      const board = data.options[0];
-      const limit = data.options[1] || {value: 1};
-      const selectThread = await getListThread(board.value);
-      const threadListEmbed = createListThreadEmbed(board.value, selectThread, limit.value);
-      let threadListPayloadData = {
-        embeds: [threadListEmbed],
-        // content: `this shit stupid`,
-      };
-      return res.send({
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        // data: {content:`${selectThread.id}`},
-        data: threadListPayloadData,
-      });
-    }
-
     if (name === 'reply'){
       const board = data.options[0];
       const thread = data.options[1];
-      const selectReply = await getTopReply(board.value, thread.value);
-      const replyEmbed = createReplyEmbed(selectReply);
+      const limit = data.options[2] || {value: 1};
+      const selectReply = await getReply(board.value, thread.value, limit.value);
+      let replyEmbed = {}
+      if (limit.value == 1) {replyEmbed = createReplyEmbed(selectReply)}
+      else {replyEmbed = createListReplyEmbed(board.value, thread.value, selectReply, limit.value)};
       let replyPayloadData = {
         embeds: [replyEmbed],
       };
@@ -89,24 +77,6 @@ app.post('/interactions', async function (req, res) {
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         // data: {content:`${selectReply.id}`},
         data: replyPayloadData,
-      });
-    }
-
-    if (name === 'replies'){
-      const board = data.options[0];
-      const thread = data.options[1];
-      const limit = data.options[2] || {value: 1};
-      const selectReply = await getListReply(board.value, thread.value, limit.value);
-      let replyEmbed = {}
-      if (limit.value == 1) {replyEmbed = createReplyEmbed(selectReply[0])}
-      else {replyEmbed = createListReplyEmbed(board.value, thread.value, selectReply, limit.value)};
-      let replyListPayloadData = {
-        embeds: [replyEmbed],
-      };
-      return res.send({
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        // data: {content:`${selectReply.id}`},
-        data: replyListPayloadData,
       });
     }
   }
