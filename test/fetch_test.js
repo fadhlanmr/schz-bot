@@ -78,7 +78,7 @@ export async function getThreads(boardParams, returnTopThread = false) {
     }
   }
   
-console.log(await getThreads("vg", true));
+// console.log(await getThreads("vg", true));
 
 export async function getReply(boardParams, threadParams, limitParams = 1) {
   const endpoint = `https://a.4cdn.org/${boardParams}/thread/${threadParams}.json`;
@@ -158,7 +158,7 @@ export async function getReply(boardParams, threadParams, limitParams = 1) {
   }
 }
 
-console.log(await getReply("vg", 489046496))
+// console.log(await getReply("vg", 489046496))
 
 function htmlclean(escapedHTML) {
     return escapedHTML
