@@ -135,8 +135,8 @@ try {
       topReply[pos].reply=sortedMap[index][1];
       topReply[pos].image=`https://i.4cdn.org/${boardParams}/${topReply[pos].file}`
       resultReply.push(topReply[pos]);
-      return resultReply
     }
+    return resultReply
   }
 } catch (err) {
   console.error(err);

@@ -78,7 +78,7 @@ export async function getThreads(boardParams, returnTopThread = false) {
     }
   }
   
-// console.log(await getThreads("vg", true));
+console.log(await getThreads("vg", true));
 
 export async function getReply(boardParams, threadParams, limitParams = 1) {
   const endpoint = `https://a.4cdn.org/${boardParams}/thread/${threadParams}.json`;
@@ -135,15 +135,16 @@ export async function getReply(boardParams, threadParams, limitParams = 1) {
     });
     console.log("----- done check map val -----");
     // sort array from map iter for limitParams size
-    let sortedMap = [...idMap.entries()].sort((a, b) => b[1] - a[1]).slice(0,limitParams)
     console.log("----- done sort map val -----");
     if(limitParams=1) {
-      let pos = topReply.map((e) => e.id).indexOf(sortedMap[0][0]);
-      topReply[pos].reply=sortedMap[0][1];
+      let topMap = [...idMap.entries()].reduce((a, e ) => e[1] > a[1] ? e : a)
+      let pos = topReply.map((e) => e.id).indexOf(topMap[0]);
+      topReply[pos].reply=topMap[1];
       topReply[pos].image=`https://i.4cdn.org/${boardParams}/${topReply[pos].file}`
       return topReply[pos];
     }
     else {
+      let sortedMap = [...idMap.entries()].sort((a, b) => b[1] - a[1]).slice(0,limitParams)
       let resultReply = []
       for (let index = 0; index < limitParams; index++) {
         let pos = topReply.map((e) => e.id).indexOf(sortedMap[index][0]);
@@ -158,7 +159,7 @@ export async function getReply(boardParams, threadParams, limitParams = 1) {
   }
 }
 
-// console.log(await getReply("vg", 489046496))
+console.log(await getReply("vg", 489174724))
 
 function htmlclean(escapedHTML) {
     return escapedHTML
