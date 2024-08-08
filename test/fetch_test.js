@@ -80,7 +80,7 @@ export async function getThreads(boardParams, returnTopThread = false) {
   
 console.log(await getThreads("vg", true));
 
-export async function getReply(boardParams, threadParams, limitParams = 1) {
+export async function getReply(boardParams, threadParams, limitParams) {
   const endpoint = `https://a.4cdn.org/${boardParams}/thread/${threadParams}.json`;
   // map for reply check
   const idMap = new Map();
@@ -136,7 +136,7 @@ export async function getReply(boardParams, threadParams, limitParams = 1) {
     console.log("----- done check map val -----");
     // sort array from map iter for limitParams size
     console.log("----- done sort map val -----");
-    if(limitParams=1) {
+    if(limitParams<2) {
       let topMap = [...idMap.entries()].reduce((a, e ) => e[1] > a[1] ? e : a)
       let pos = topReply.map((e) => e.id).indexOf(topMap[0]);
       topReply[pos].reply=topMap[1];
@@ -151,15 +151,15 @@ export async function getReply(boardParams, threadParams, limitParams = 1) {
         topReply[pos].reply=sortedMap[index][1];
         topReply[pos].image=`https://i.4cdn.org/${boardParams}/${topReply[pos].file}`
         resultReply.push(topReply[pos]);
-        return resultReply
-      }
+    }
+    return resultReply
     }
   } catch (err) {
     console.error(err);
   }
 }
 
-console.log(await getReply("vg", 489174724))
+console.log(await getReply("vg", 489402392, 5))
 
 function htmlclean(escapedHTML) {
     return escapedHTML

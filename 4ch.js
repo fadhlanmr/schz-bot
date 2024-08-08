@@ -33,7 +33,7 @@ export async function getThreads(boardParams, limitParams) {
     threadList.sort((a, b) => b.reply - a.reply);
     console.log("--- threads sorted ---");
 
-    if (limitParams=1) {
+    if (limitParams<2) {
       let resultThread = threadList[0];
       let returnThread = {
         thread: resultThread.thread,
@@ -122,7 +122,7 @@ try {
   // sort array from map iter for limitParams size
   let sortedMap = [...idMap.entries()].sort((a, b) => b[1] - a[1]).slice(0,limitParams)
   console.log("----- done sort map val -----");
-  if(limitParams=1) {
+  if(limitParams<2) {
     let pos = topReply.map((e) => e.id).indexOf(sortedMap[0][0]);
     topReply[pos].reply=sortedMap[0][1];
     topReply[pos].image=`https://i.4cdn.org/${boardParams}/${topReply[pos].file}`
