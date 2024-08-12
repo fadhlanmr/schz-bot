@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { InstallGlobalCommands } from './utils.js';
+import { InstallGlobalCommands, InstallGuildCommands } from './utils.js';
 
 // thread command
 const THREAD_COMMAND = {
@@ -62,4 +62,5 @@ const ALL_COMMANDS = [
   REPLY_COMMAND
 ];
 
-InstallGlobalCommands(process.env.APP_ID, process.env.GUILD_ID, ALL_COMMANDS);
+InstallGuildCommands(process.env.APP_ID, process.env.GUILD_ID, ALL_COMMANDS);
+InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS)
