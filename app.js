@@ -88,7 +88,7 @@ app.post('/interactions', async function (req, res) {
       const search = subOptions[1];
       let searchVal = search.value.startsWith("/") && search.value.endsWith("/") ? String(search.value).toLowerCase() : `/${String(search.value).toLowerCase()}/`;
       const selectSearch = await searchThreads(board.value, searchVal, true);
-      if (selectSearch.length<1) {
+      if (!selectSearch) {
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
           data: {content:`no such general, try thread search`},
