@@ -11,7 +11,8 @@ import {
 import { 
   getThreads,
   getReply,
-  searchThreads
+  searchThreads,
+  searchReply
 } from './4ch.js';
 
 // Create an express app
@@ -104,6 +105,25 @@ app.post('/interactions', async function (req, res) {
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         // data: {content:`${selectThread.thread}`},
+        data: searchPayloadData,
+      });
+    }
+
+    if (name === 'search_reply'){
+      const board = data.options[0];
+      const thread = data.options[1];
+      const search = data.options[2];
+      const searchVal = String(search.value).toLowerCase();
+      const selectSearch = await searchReply(board.value, thread.value, searchVal);
+      let searchEmbed = {}
+      if (selectSearch.length<2) {searchEmbed = createReplyEmbed(selectSearch)}
+      else {searchEmbed = createListReplyEmbed(board.value, thread.value, selectSearch, selectSearch.length)};
+      let searchPayloadData = {
+        embeds: [searchEmbed],
+      };
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        // data: {content:`${selectReply.id}`},
         data: searchPayloadData,
       });
     }

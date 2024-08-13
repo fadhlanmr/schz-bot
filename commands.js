@@ -70,6 +70,34 @@ const THREAD_SEARCH_COMMAND = {
     },
     {
       type: 3,
+      name: 'thread',
+      description: 'what thread',
+      required: true,
+    },
+    {
+      type: 3,
+      name: 'search',
+      description: 'what',
+      required: true,
+    },
+  ],
+  integration_types: [0, 1],
+  contexts: [0, 1, 2],
+};
+
+const REPLY_SEARCH_COMMAND = {
+  name: 'search_reply',
+  type: 1,
+  description: 'search in lurk Better',
+  options: [
+    {
+      type: 3,
+      name: 'board',
+      description: 'Which Board',
+      required: true,
+    },
+    {
+      type: 3,
       name: 'search',
       description: 'what',
       required: true,
@@ -82,7 +110,8 @@ const THREAD_SEARCH_COMMAND = {
 const ALL_COMMANDS = [
   THREAD_COMMAND,
   REPLY_COMMAND,
-  THREAD_SEARCH_COMMAND
+  THREAD_SEARCH_COMMAND,
+  REPLY_SEARCH_COMMAND
 ];
 
 InstallGuildCommands(process.env.APP_ID, process.env.GUILD_ID, ALL_COMMANDS);

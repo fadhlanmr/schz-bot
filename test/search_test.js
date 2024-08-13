@@ -236,7 +236,7 @@ export async function searchReply(boardParams, threadParams, searchWord) {
     });
     console.log("----- done check map val -----");
     // sort array from map iter for limitResult size
-    let limitResult = replyList.length>20 ? replyList.slice(0,20) : replyList.length;
+    let limitResult = replyList.length>20 ? 20 : replyList.length;
     if(limitResult<2) {
       let resultReply = replyList[0];
       resultReply.reply=idMap.get(resultReply.id);
@@ -257,7 +257,7 @@ export async function searchReply(boardParams, threadParams, searchWord) {
   }
 }
 
-searchReply("vg", 490058734, "listen")
+// searchReply("vg", 490058734, "what")
 
 function htmlclean(escapedHTML) {
   return escapedHTML
