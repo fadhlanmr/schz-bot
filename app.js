@@ -114,7 +114,7 @@ app.post('/interactions', async function (req, res) {
       if (!selectSearch) {
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {content:`no such thread`},
+          data: {content:`no such thread, try other word`},
         });
       }
       const searchLength = selectSearch.length;
@@ -178,7 +178,7 @@ app.post('/interactions', async function (req, res) {
       if (!selectSearch) {
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {content:`no such reply, either tame or hideous`},
+          data: {content:`no such reply, try other word`},
         });
       }
       // const errorInput = errorInput(selectSearch, InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE);
