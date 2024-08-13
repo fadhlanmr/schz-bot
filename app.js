@@ -82,7 +82,7 @@ app.post('/interactions', async function (req, res) {
       });
     }
 
-    if (name === 'search thread'){
+    if (name === 'search_thread'){
       const board = data.options[0];
       const search = data.options[1];
       const searchVal = String(search.value).toLowerCase();
@@ -109,7 +109,7 @@ app.post('/interactions', async function (req, res) {
       });
     }
 
-    if (name === 'search reply'){
+    if (name === 'search_reply'){
       const board = data.options[0];
       const thread = data.options[1];
       const search = data.options[2];

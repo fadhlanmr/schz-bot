@@ -58,7 +58,7 @@ const REPLY_COMMAND = {
 };
 
 const THREAD_SEARCH_COMMAND = {
-  name: 'search thread',
+  name: 'search_thread',
   type: 1,
   description: 'search Better',
   options: [
@@ -80,7 +80,7 @@ const THREAD_SEARCH_COMMAND = {
 };
 
 const REPLY_SEARCH_COMMAND = {
-  name: 'search reply',
+  name: 'search_reply',
   type: 1,
   description: 'search in lurk Better',
   options: [
