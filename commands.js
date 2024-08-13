@@ -57,9 +57,32 @@ const REPLY_COMMAND = {
   contexts: [0, 1, 2],
 };
 
+const THREAD_SEARCH_COMMAND = {
+  name: 'search_thread',
+  type: 1,
+  description: 'search Better',
+  options: [
+    {
+      type: 3,
+      name: 'board',
+      description: 'Which Board',
+      required: true,
+    },
+    {
+      type: 3,
+      name: 'search',
+      description: 'what',
+      required: true,
+    },
+  ],
+  integration_types: [0, 1],
+  contexts: [0, 1, 2],
+};
+
 const ALL_COMMANDS = [
   THREAD_COMMAND,
-  REPLY_COMMAND
+  REPLY_COMMAND,
+  THREAD_SEARCH_COMMAND
 ];
 
 InstallGuildCommands(process.env.APP_ID, process.env.GUILD_ID, ALL_COMMANDS);

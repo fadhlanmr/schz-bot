@@ -159,7 +159,7 @@ export async function getReply(boardParams, threadParams, limitParams) {
   }
 }
 
-// console.log(await getReply("vg", 489402392, 5))
+// console.log(await getReply("vg", 490058734, 5))
 
 function htmlclean(escapedHTML) {
     return escapedHTML

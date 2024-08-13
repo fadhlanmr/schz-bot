@@ -10,7 +10,8 @@ import {
 } from './utils.js';
 import { 
   getThreads,
-  getReply
+  getReply,
+  searchThreads
 } from './4ch.js';
 
 // Create an express app
@@ -77,6 +78,33 @@ app.post('/interactions', async function (req, res) {
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         // data: {content:`${selectReply.id}`},
         data: replyPayloadData,
+      });
+    }
+
+    if (name === 'search_thread'){
+      const board = data.options[0];
+      const search = data.options[1];
+      const searchVal = String(search.value).toLowerCase();
+      let isGeneral = false;
+      if (searchVal.startsWith("/") && searchVal.endsWith("/")){isGeneral = true}
+      const selectSearch = await searchThreads(board.value, search.value, isGeneral);
+      if (selectSearch.length > 25){
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {content:`too broad, please be specific`},
+        });
+      }
+      let searchEmbed = {}
+      if (isGeneral) {searchEmbed = createThreadEmbed(board.value, selectSearch)}
+      else {searchEmbed = createListThreadEmbed(board.value, selectSearch, selectSearch.length)};
+      let searchPayloadData = {
+        embeds: [searchEmbed],
+        // content: `this thing stupid`,
+      };
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        // data: {content:`${selectThread.thread}`},
+        data: searchPayloadData,
       });
     }
   }
