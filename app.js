@@ -45,8 +45,9 @@ app.post('/interactions', async function (req, res) {
    */
   if (type === InteractionType.APPLICATION_COMMAND) {
     const { name, options } = data;
-    console.log(name, options)
-    if (name === 'thread top'){
+    const comName = name + ' ' + options.name;
+    console.log(name, options, comName, options.name);
+    if (comName === 'thread top'){
       const board = data.options[0];
       let isTop = 1;
       const selectThread = await getThreads(board.value, isTop);
