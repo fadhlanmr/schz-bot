@@ -45,11 +45,13 @@ app.post('/interactions', async function (req, res) {
    */
   if (type === InteractionType.APPLICATION_COMMAND) {
     const { name, options } = data;
+    let comName = name;
+    let subOptions = {}
     if (options){
-      const comName = name + ' ' + options[0].name;
-      const subOption = options[0]
+      comName = name + ' ' + options[0].name;
+      subOption = options[0].options;
     }
-    console.log(options);
+    console.log(comName, subOptions);
     if (comName === 'thread top'){
       const board = data.options[0];
       let isTop = 1;
