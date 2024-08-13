@@ -1,25 +1,64 @@
-import 'dotenv/config';
-import { InstallGlobalCommands, InstallGuildCommands } from './utils.js';
+import "dotenv/config";
+import { InstallGlobalCommands, InstallGuildCommands } from "./utils.js";
 
 // thread command
 const THREAD_COMMAND = {
-  name: 'thread',
+  name: "thread",
   type: 1,
-  description: 'Lurk Better',
+  description: "Lurk Better",
   options: [
     {
-      type: 3,
-      name: 'board',
-      description: 'Which Board',
-      required: true,
+      name: "top",
+      description: "top thread",
+      type: 1, // 1 is type SUB_COMMAND
+      options: [
+        {
+          type: 3,
+          name: "board",
+          description: "Which Board",
+          required: true,
+        },
+      ]
     },
     {
-      type: 4,
-      name: 'limit',
-      description: 'How much',
-      required: false,
-      min_value: 1,
-      max_value: 25
+      name: "list",
+      description: "list thread",
+      type: 1,
+      options: [
+        {
+          type: 3,
+          name: "board",
+          description: "Which Board",
+          required: true,
+        },
+        {
+          type: 4,
+          name: "limit",
+          description: "How much",
+          required: false,
+          min_value: 2,
+          max_value: 25,
+        },
+      ]
+    },
+    {
+      name: "search",
+      description: "search thread",
+      type: 1,
+      options: [
+        {
+          type: 3,
+          name: "board",
+          description: "Which Board",
+          required: true,
+        },
+        {
+          type: 3,
+          name: "search",
+          description: "what",
+          required: true,
+        },
+      ]
     },
   ],
   integration_types: [0, 1],
@@ -28,79 +67,80 @@ const THREAD_COMMAND = {
 
 // thread reply command
 const REPLY_COMMAND = {
-  name: 'reply',
+  name: "reply",
   type: 1,
-  description: 'you lurked',
+  description: "you lurked",
   options: [
     {
-      type: 3,
-      name: 'board',
-      description: 'Which Board',
-      required: true,
+      name: "top",
+      description: "top reply",
+      type: 1, // 1 is type SUB_COMMAND
+      options: [
+        {
+          type: 3,
+          name: "board",
+          description: "Which Board",
+          required: true,
+        },
+        {
+          type: 3,
+          name: "thread",
+          description: "what thread",
+          required: true,
+        },
+      ]
     },
     {
-      type: 3,
-      name: 'thread',
-      description: 'what thread',
-      required: true,
+      name: "list",
+      description: "list reply",
+      type: 1,
+      options: [
+        {
+          type: 3,
+          name: "board",
+          description: "Which Board",
+          required: true,
+        },
+        {
+          type: 3,
+          name: "thread",
+          description: "what thread",
+          required: true,
+        },
+        {
+          type: 4,
+          name: "limit",
+          description: "How much",
+          required: false,
+          min_value: 2,
+          max_value: 25,
+        },
+      ]
     },
     {
-      type: 4,
-      name: 'limit',
-      description: 'how much',
-      required: false,
-      min_value: 1,
-      max_value: 25
-    },
-  ],
-  integration_types: [0, 1],
-  contexts: [0, 1, 2],
-};
-
-const THREAD_SEARCH_COMMAND = {
-  name: 'search_thread',
-  type: 1,
-  description: 'search Better',
-  options: [
-    {
-      type: 3,
-      name: 'board',
-      description: 'Which Board',
-      required: true,
-    },
-    {
-      type: 3,
-      name: 'search',
-      description: 'what',
-      required: true,
-    },
-  ],
-  integration_types: [0, 1],
-  contexts: [0, 1, 2],
-};
-
-const REPLY_SEARCH_COMMAND = {
-  name: 'search_reply',
-  type: 1,
-  description: 'search in lurk Better',
-  options: [
-    {
-      type: 3,
-      name: 'board',
-      description: 'Which Board',
-      required: true,
-    },
-    {
-      type: 3,
-      name: 'thread',
-      description: 'what thread',
-      required: true,
-    },
-    {
-      type: 3,
-      name: 'search',
-      description: 'what',
-      required: true,
+      name: "search",
+      description: "search reply",
+      type: 1,
+      options: [
+        {
+          type: 3,
+          name: "board",
+          description: "Which Board",
+          required: true,
+        },
+        {
+          type: 3,
+          name: "thread",
+          description: "what thread",
+          required: true,
+        },
+        {
+          type: 3,
+          name: "search",
+          description: "what",
+          required: true,
+        },
+      ]
     },
   ],
   integration_types: [0, 1],
@@ -110,9 +150,7 @@ const REPLY_SEARCH_COMMAND = {
 const ALL_COMMANDS = [
   THREAD_COMMAND,
   REPLY_COMMAND,
-  THREAD_SEARCH_COMMAND,
-  REPLY_SEARCH_COMMAND
 ];
 
 InstallGuildCommands(process.env.APP_ID, process.env.GUILD_ID, ALL_COMMANDS);
-InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS)
+InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);

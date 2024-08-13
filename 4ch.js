@@ -53,12 +53,7 @@ export async function getThreads(boardParams, limitParams) {
       }
       return returnThread;
     } else {
-      return threadList.map((thread) => ({
-        thread: thread.thread,
-        title: thread.title,
-        body: thread.body,
-        reply: thread.reply,
-      }));
+      return threadList;
     }
   } catch (err) {
     console.error(err);

@@ -66,19 +66,14 @@ export async function getThreads(boardParams, returnTopThread = false) {
         }
         return returnThread;
       } else {
-        return threadList.map((thread) => ({
-          thread: thread.thread,
-          title: thread.title,
-          body: thread.body,
-          reply: thread.reply,
-        }));
+        return threadList;
       }
     } catch (err) {
       console.error(err);
     }
   }
   
-// console.log(await getThreads("vg", true));
+// console.log(await getThreads("tv", true));
 
 export async function getReply(boardParams, threadParams, limitParams) {
   const endpoint = `https://a.4cdn.org/${boardParams}/thread/${threadParams}.json`;
