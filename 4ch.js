@@ -259,8 +259,11 @@ export async function searchReply(boardParams, threadParams, searchWord) {
     });
     console.log("----- done check map val -----");
     // limit result to 20 if over
+    if (!replyList) {
+      return replyList;
+    }
     let limitResult = replyList.length>20 ? 20 : replyList.length;
-    if(limitResult<2) {
+    if (limitResult<2) {
       let resultReply = replyList[0];
       resultReply.reply=idMap.get(resultReply.id);
       resultReply.image=`https://i.4cdn.org/${boardParams}/${resultReply.file}`;
