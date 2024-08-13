@@ -44,8 +44,8 @@ app.post('/interactions', async function (req, res) {
    * See https://discord.com/developers/docs/interactions/application-commands#slash-commands
    */
   if (type === InteractionType.APPLICATION_COMMAND) {
-    const { name } = data;
-    console.log(name)
+    const { name, options } = data;
+    console.log(name, options)
     if (name === 'thread top'){
       const board = data.options[0];
       let isTop = 1;
