@@ -196,12 +196,7 @@ export async function searchThreads(boardParams, searchWord, isGeneral) {
       }
       return returnThread;
     } else {
-      return threadList.map((thread) => ({
-          thread: thread.thread,
-          title: thread.title,
-          body: thread.body,
-          reply: thread.reply,
-        }));
+      return threadList;
     }
   } catch (err) {
     console.error(err);
@@ -225,6 +220,7 @@ export async function searchReply(boardParams, threadParams, searchWord) {
       const data = await res.json();
       console.log(res.status);
       throw new Error(JSON.stringify(data));
+      // return "not a thread, or error input";
     }
     const data = await res.json();
     const posts = data.posts;

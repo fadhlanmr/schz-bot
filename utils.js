@@ -108,7 +108,7 @@ export function createListThreadEmbed(board, threadData, limit) {
   let threadCount = threadData.length;
   return {
     type: 'rich',
-    title: `/${board}/ Top Thread`,
+    title: `/${board}/ Thread`,
     color: 2067276,
     timestamp: date.toLocaleString,
     url: `https://boards.4channel.org/${board}`,
@@ -163,7 +163,7 @@ export function createListReplyEmbed(board, thread, replyData, limit) {
   let replyCount = replyData.length;
   return {
     type: 'rich',
-    title: `>>${thread} Top Replies`,
+    title: `>>${thread} Replies`,
     color: 2067276,
     timestamp: date.toLocaleString,
     url: `https://boards.4channel.org/${board}/thread/${thread}`,
@@ -173,6 +173,15 @@ export function createListReplyEmbed(board, thread, replyData, limit) {
     },
     fields: embedReplyList(replyData, limit)
   };
+}
+
+export function errorInput(returnFunction, typeSend) {
+  if (returnFunction instanceof String) {
+    return {
+      type: typeSend,
+      data: {content:`${returnFunction}`},
+    };
+  }
 }
 
 export function capitalize(str) {

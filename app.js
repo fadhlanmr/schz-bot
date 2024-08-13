@@ -45,15 +45,14 @@ app.post('/interactions', async function (req, res) {
    */
   if (type === InteractionType.APPLICATION_COMMAND) {
     const { name, options } = data;
-    let comName = name;
+    let commandName = name;
     let subOptions = {}
     if (options){
-      comName = name + ' ' + options[0].name;
-      subOption = options[0].options;
+      commandName = name + ' ' + options[0].name;
+      subOptions = options[0].options;
     }
-    console.log(comName, subOptions);
-    if (comName === 'thread top'){
-      const board = data.options[0];
+    if (commandName === 'thread top'){
+      const board = subOptions[0];
       let isTop = 1;
       const selectThread = await getThreads(board.value, isTop);
       let threadEmbed = createThreadEmbed(board.value, selectThread);
@@ -68,9 +67,9 @@ app.post('/interactions', async function (req, res) {
       });
     }
 
-    if (name === 'thread list'){
-      const board = data.options[0];
-      const limit = data.options[1] || {value: 2};
+    if (commandName === 'thread list'){
+      const board = subOptions[0];
+      const limit = subOptions[1] || {value: 2};
       const selectThread = await getThreads(board.value, limit.value);
       let threadEmbed = createListThreadEmbed(board.value, selectThread, limit.value);
       let threadPayloadData = {
@@ -84,12 +83,60 @@ app.post('/interactions', async function (req, res) {
       });
     }
 
-    if (name === 'reply top'){
-      const board = data.options[0];
-      const thread = data.options[1];
+    if (commandName === 'thread general'){
+      const board = subOptions[0];
+      const search = subOptions[1];
+      let searchVal = search.value.startsWith("/") && search.value.endsWith("/") ? String(search.value).toLowerCase() : `/${String(search.value).toLowerCase()}/`;
+      const selectSearch = await searchThreads(board.value, searchVal, true);
+      if (selectSearch.length<1) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {content:`no such general, try thread search`},
+        });
+      }
+      let searchEmbed = createThreadEmbed(board.value, selectSearch)
+      let searchPayloadData = {
+        embeds: [searchEmbed],
+        // content: `this thing stupid`,
+      };
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        // data: {content:`${selectThread.thread}`},
+        data: searchPayloadData,
+      });
+    }
+
+    if (commandName === 'thread search'){
+      const board = subOptions[0];
+      const search = subOptions[1];
+      const searchVal = String(search.value).toLowerCase();
+      const selectSearch = await searchThreads(board.value, searchVal, false);
+      const searchLength = selectSearch.length;
+      if (searchLength > 25){
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {content:`too broad, please be specific`},
+        });
+      }
+      let searchEmbed = createListThreadEmbed(board.value, selectSearch, searchLength);
+      let searchPayloadData = {
+        embeds: [searchEmbed],
+        // content: `this thing stupid`,
+      };
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        // data: {content:`${selectThread.thread}`},
+        data: searchPayloadData,
+      });
+    }
+
+
+    if (commandName === 'reply top'){
+      const board = subOptions[0];
+      const thread = subOptions[1];
       let isTop = 1;
       const selectReply = await getReply(board.value, thread.value, isTop);
-      let replyEmbed = replyEmbed = createReplyEmbed(selectReply);
+      let replyEmbed = createReplyEmbed(selectReply);
       let replyPayloadData = {
         embeds: [replyEmbed],
       };
@@ -100,10 +147,10 @@ app.post('/interactions', async function (req, res) {
       });
     }
 
-    if (name === 'reply list'){
-      const board = data.options[0];
-      const thread = data.options[1];
-      const limit = data.options[2] || {value: 2};
+    if (commandName === 'reply list'){
+      const board = subOptions[0];
+      const thread = subOptions[1];
+      const limit = subOptions[2] || {value: 2};
       const selectReply = await getReply(board.value, thread.value, limit.value);
       let replyEmbed = createListReplyEmbed(board.value, thread.value, selectReply, limit.value);
       let replyPayloadData = {
@@ -116,39 +163,16 @@ app.post('/interactions', async function (req, res) {
       });
     }
 
-    if (name === 'search_thread'){
-      const board = data.options[0];
-      const search = data.options[1];
-      const searchVal = String(search.value).toLowerCase();
-      let isGeneral = false;
-      if (searchVal.startsWith("/") && searchVal.endsWith("/")){isGeneral = true}
-      const selectSearch = await searchThreads(board.value, search.value, isGeneral);
-      if (selectSearch.length > 25){
-        return res.send({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {content:`too broad, please be specific`},
-        });
-      }
-      let searchEmbed = {}
-      if (isGeneral) {searchEmbed = createThreadEmbed(board.value, selectSearch)}
-      else {searchEmbed = createListThreadEmbed(board.value, selectSearch, selectSearch.length)};
-      let searchPayloadData = {
-        embeds: [searchEmbed],
-        // content: `this thing stupid`,
-      };
-      return res.send({
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        // data: {content:`${selectThread.thread}`},
-        data: searchPayloadData,
-      });
-    }
-
-    if (name === 'search_reply'){
-      const board = data.options[0];
-      const thread = data.options[1];
-      const search = data.options[2];
+    if (commandName === 'reply search'){
+      const board = subOptions[0];
+      const thread = subOptions[1];
+      const search = subOptions[2];
       const searchVal = String(search.value).toLowerCase();
       const selectSearch = await searchReply(board.value, thread.value, searchVal);
+      // const errorInput = errorInput(selectSearch, InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE);
+      // if (errorInput){
+      //   return res.send(errorInput)
+      // }
       let searchEmbed = {}
       if (selectSearch.length<2) {searchEmbed = createReplyEmbed(selectSearch)}
       else {searchEmbed = createListReplyEmbed(board.value, thread.value, selectSearch, selectSearch.length)};

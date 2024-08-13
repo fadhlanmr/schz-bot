@@ -34,10 +34,29 @@ const THREAD_COMMAND = {
         {
           type: 4,
           name: "limit",
-          description: "How much",
+          description: "How much, default 2",
           required: false,
           min_value: 2,
           max_value: 25,
+        },
+      ]
+    },
+    {
+      name: "general",
+      description: "search general thread",
+      type: 1,
+      options: [
+        {
+          type: 3,
+          name: "board",
+          description: "Which Board",
+          required: true,
+        },
+        {
+          type: 3,
+          name: "search",
+          description: "what general",
+          required: true,
         },
       ]
     },
@@ -110,7 +129,7 @@ const REPLY_COMMAND = {
         {
           type: 4,
           name: "limit",
-          description: "How much",
+          description: "How much, default 2",
           required: false,
           min_value: 2,
           max_value: 25,
