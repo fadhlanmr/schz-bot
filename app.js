@@ -111,6 +111,12 @@ app.post('/interactions', async function (req, res) {
       const search = subOptions[1];
       const searchVal = String(search.value).toLowerCase();
       const selectSearch = await searchThreads(board.value, searchVal, false);
+      if (!selectSearch) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {content:`no such thread`},
+        });
+      }
       const searchLength = selectSearch.length;
       if (searchLength > 25){
         return res.send({
@@ -169,13 +175,26 @@ app.post('/interactions', async function (req, res) {
       const search = subOptions[2];
       const searchVal = String(search.value).toLowerCase();
       const selectSearch = await searchReply(board.value, thread.value, searchVal);
+      if (!selectSearch) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {content:`no such reply, either tame or hideous`},
+        });
+      }
       // const errorInput = errorInput(selectSearch, InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE);
       // if (errorInput){
       //   return res.send(errorInput)
       // }
+      const searchLength = selectSearch.length;
+      if (searchLength > 25){
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {content:`too broad, please be specific`},
+        });
+      }
       let searchEmbed = {}
-      if (selectSearch.length<2) {searchEmbed = createReplyEmbed(selectSearch)}
-      else {searchEmbed = createListReplyEmbed(board.value, thread.value, selectSearch, selectSearch.length)};
+      if (searchLength<2) {searchEmbed = createReplyEmbed(selectSearch)}
+      else {searchEmbed = createListReplyEmbed(board.value, thread.value, selectSearch, searchLength)};
       let searchPayloadData = {
         embeds: [searchEmbed],
       };
