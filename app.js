@@ -193,7 +193,7 @@ app.post('/interactions', async function (req, res) {
         });
       }
       let searchEmbed = {}
-      if (searchLength<2) {searchEmbed = createReplyEmbed(selectSearch)}
+      if (!searchLength) {searchEmbed = createReplyEmbed(selectSearch)}
       else {searchEmbed = createListReplyEmbed(board.value, thread.value, selectSearch, searchLength)};
       let searchPayloadData = {
         embeds: [searchEmbed],
