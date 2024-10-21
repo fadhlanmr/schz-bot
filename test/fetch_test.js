@@ -14,6 +14,7 @@ fetch('https://bankina.co.id/id/valas/')
 }
 
 export async function getThreads(boardParams, returnTopThread = false) {
+  console.time('threadSearch')    
     const endpoint = `https://a.4cdn.org/${boardParams}/catalog.json`;
     const threadList = [];
   
@@ -64,18 +65,22 @@ export async function getThreads(boardParams, returnTopThread = false) {
         if (resultThread.body) {
           returnThread.body = `${htmlclean(resultThread.body.substring(0, 1200))}`;
         }
+        console.timeEnd('threadSearch')
         return returnThread;
       } else {
+        console.timeEnd('threadSearch')
         return threadList;
       }
     } catch (err) {
       console.error(err);
+      console.timeEnd('threadSearch')
     }
   }
   
-// console.log(await getThreads("tv", true));
+console.log(getThreads("vt"));
 
 export async function getReply(boardParams, threadParams, limitParams) {
+  console.time('replySearch')    
   const endpoint = `https://a.4cdn.org/${boardParams}/thread/${threadParams}.json`;
   // map for reply check
   const idMap = new Map();
@@ -136,6 +141,7 @@ export async function getReply(boardParams, threadParams, limitParams) {
       let pos = topReply.map((e) => e.id).indexOf(topMap[0]);
       topReply[pos].reply=topMap[1];
       topReply[pos].image=`https://i.4cdn.org/${boardParams}/${topReply[pos].file}`
+      console.timeEnd('replySearch')
       return topReply[pos];
     }
     else {
@@ -147,14 +153,17 @@ export async function getReply(boardParams, threadParams, limitParams) {
         topReply[pos].image=`https://i.4cdn.org/${boardParams}/${topReply[pos].file}`
         resultReply.push(topReply[pos]);
     }
+    console.timeEnd('replySearch')
     return resultReply
     }
   } catch (err) {
     console.error(err);
+    console.timeEnd('replySearch')
   }
+  
 }
 
-// console.log(await getReply("vg", 490058734, 5))
+console.log(getReply("vt", 87079594, 10))
 
 function htmlclean(escapedHTML) {
     return escapedHTML

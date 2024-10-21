@@ -256,8 +256,11 @@ export async function searchReply(boardParams, threadParams, searchWord) {
     console.error(err);
   }
 }
+console.time('startSearch')    
+console.log(searchReply("vt", 87036411, "what"))
+console.timeEnd('startSearch')
 
-// searchReply("vg", 490058734, "what")
+const cleanHtml = (str) => str?.replace(/<[^>]*>/g, '') || '';
 
 function htmlclean(escapedHTML) {
   return escapedHTML
