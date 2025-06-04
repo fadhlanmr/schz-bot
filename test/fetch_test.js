@@ -1,17 +1,41 @@
 import fetch from "node-fetch";
+import { JSDOM } from 'jsdom';
 
 function getValas() {
-fetch('https://bankina.co.id/id/valas/')
-  .then(response => response.text())
-  .then(html => {
-    // Parse the HTML string and manipulate it
-    console.log(html);
-    document.body.innerHTML = html; // Example: set the response as the document body
-  })
-  .catch(error => {
-    console.error('Error fetching the page:', error);
-  });
+  fetch('https://bankina.co.id/id/valas/')
+    .then(response => response.text())
+    .then(html => {
+      const dom = new JSDOM(html);
+      const valasSection = dom.window.document.querySelector('.m-section.valas');
+
+      if (!valasSection) {
+        console.error('Valas section not found in the response');
+        return;
+      }
+
+      const tableBody = valasSection.querySelector('tbody');
+      const rows = tableBody.querySelectorAll('tr');
+
+      const exchangeRates = {};
+
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const currency = cells[0].textContent;
+        const sellRate = Number(cells[1].textContent.replace('.','').split(',')[0]);
+        const buyRate = Number(cells[2].textContent.replace('.','').split(',')[0]);
+
+        exchangeRates[currency] = {
+          sell: sellRate,
+          buy: buyRate
+        };
+      });
+      console.log(JSON.stringify(exchangeRates));
+    })
+    .catch(error => {
+      console.error('Error fetching the page:', error);
+    });
 }
+console.log(getValas());
 
 export async function getThreads(boardParams, returnTopThread = false) {
   console.time('threadSearch')    
