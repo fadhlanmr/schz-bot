@@ -1,11 +1,11 @@
-import "dotenv/config";
 import { verifyKey } from "discord-interactions";
 import fetch from "node-fetch";
+import { env } from "cloudflare:workers";
 
 export function VerifyDiscordRequest(clientKey) {
   return function (req, res, buf) {
-    const signature = req.get("X-Signature-Ed25519");
-    const timestamp = req.get("X-Signature-Timestamp");
+    const signature = req.header("X-Signature-Ed25519");
+    const timestamp = req.header("X-Signature-Timestamp");
     console.log(signature, timestamp, clientKey);
 
     const isValidRequest = verifyKey(buf, signature, timestamp, clientKey);
@@ -23,7 +23,7 @@ export async function DiscordRequest(endpoint, options) {
   if (options.body) options.body = JSON.stringify(options.body);
   const res = await fetch(url, {
     headers: {
-      Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
+      Authorization: `Bot ${env.DISCORD_TOKEN}`,
       "Content-Type": "application/json; charset=UTF-8",
       "User-Agent": "SchzBot (https://github.com/fadhlanmr/schz-bot, 1.0.0)",
     },
@@ -67,9 +67,9 @@ export async function InstallGlobalCommands(appId, commands) {
 }
 
 export function createThreadEmbed(board, thread) {
-  let date = new Date()
+  let date = new Date();
   return {
-    type: 'rich',
+    type: "rich",
     title: thread.name,
     color: 2067276,
     description: thread.body,
@@ -77,10 +77,10 @@ export function createThreadEmbed(board, thread) {
     url: `https://boards.4channel.org/${board}/thread/${thread.thread}`,
     footer: {
       text: `${thread.reply} interactions`,
-      icon_url: "https://s.4cdn.org/image/foundericon.gif"
+      icon_url: "https://s.4cdn.org/image/foundericon.gif",
     },
     image: {
-      url: thread.image
+      url: thread.image,
     },
   };
 }
@@ -91,39 +91,43 @@ function embedThreadList(resultThread, limit) {
     let returnThread = {
       name: resultThread[index].thread,
       value: `${resultThread[index].reply} interactions\n`,
-    }
+    };
     if (resultThread[index].title) {
-      returnThread.name = `${htmlclean(resultThread[index].title)} - ${resultThread[index].thread}`
+      returnThread.name = `${htmlclean(resultThread[index].title)} - ${
+        resultThread[index].thread
+      }`;
     }
     if (resultThread[index].body) {
-      returnThread.value = `${htmlclean(resultThread[index].body.substring(0, 500))} \n${resultThread[index].reply} interactions\n\n`
-    } 
+      returnThread.value = `${htmlclean(
+        resultThread[index].body.substring(0, 500)
+      )} \n${resultThread[index].reply} interactions\n\n`;
+    }
     embedArr.push(returnThread);
   }
   return embedArr;
 }
 
 export function createListThreadEmbed(board, threadData, limit) {
-  let date = new Date()
+  let date = new Date();
   let threadCount = threadData.length;
   return {
-    type: 'rich',
+    type: "rich",
     title: `/${board}/ Thread`,
     color: 2067276,
     timestamp: date.toLocaleString,
     url: `https://boards.4channel.org/${board}`,
     footer: {
       text: `${threadCount} Thread(s)`,
-      icon_url: "https://s.4cdn.org/image/foundericon.gif"
+      icon_url: "https://s.4cdn.org/image/foundericon.gif",
     },
-    fields: embedThreadList(threadData, limit)
+    fields: embedThreadList(threadData, limit),
   };
 }
 
 export function createReplyEmbed(replyData) {
-  let date = new Date()
+  let date = new Date();
   return {
-    type: 'rich',
+    type: "rich",
     title: `>>${replyData.id}`,
     color: 2067276,
     description: htmlclean(replyData.body.substring(0, 1200)) || "",
@@ -131,10 +135,10 @@ export function createReplyEmbed(replyData) {
     url: replyData.url,
     footer: {
       text: `${replyData.reply} mentions`,
-      icon_url: "https://s.4cdn.org/image/foundericon.gif"
+      icon_url: "https://s.4cdn.org/image/foundericon.gif",
     },
     image: {
-      url: replyData.image
+      url: replyData.image,
     },
   };
 }
@@ -145,13 +149,21 @@ function embedReplyList(resultReply, limit) {
     let returnReply = {
       name: `>>${resultReply[index].id}`,
       value: `${resultReply[index].reply} mention(s)\n`,
-    }
+    };
     if (resultReply[index].body) {
-      returnReply.value = `${htmlclean(resultReply[index].body.substring(0, 500))} \n${resultReply[index].reply} mention(s)\n\n`
-    } 
+      returnReply.value = `${htmlclean(
+        resultReply[index].body.substring(0, 500)
+      )} \n${resultReply[index].reply} mention(s)\n\n`;
+    }
     if (resultReply[index].filename) {
       // fancy if-else inline
-      returnReply.value = `${resultReply[index].body ? htmlclean(resultReply[index].body.substring(0, 500)) + ' \n' : ''}${resultReply[index].image} \n${resultReply[index].reply} mention(s)\n\n`
+      returnReply.value = `${
+        resultReply[index].body
+          ? htmlclean(resultReply[index].body.substring(0, 500)) + " \n"
+          : ""
+      }${resultReply[index].image} \n${
+        resultReply[index].reply
+      } mention(s)\n\n`;
     }
     embedArr.push(returnReply);
   }
@@ -159,19 +171,19 @@ function embedReplyList(resultReply, limit) {
 }
 
 export function createListReplyEmbed(board, thread, replyData, limit) {
-  let date = new Date()
+  let date = new Date();
   let replyCount = replyData.length;
   return {
-    type: 'rich',
+    type: "rich",
     title: `>>${thread} Replies`,
     color: 2067276,
     timestamp: date.toLocaleString,
     url: `https://boards.4channel.org/${board}/thread/${thread}`,
     footer: {
       text: `${replyCount} Replies`,
-      icon_url: "https://s.4cdn.org/image/foundericon.gif"
+      icon_url: "https://s.4cdn.org/image/foundericon.gif",
     },
-    fields: embedReplyList(replyData, limit)
+    fields: embedReplyList(replyData, limit),
   };
 }
 
@@ -179,7 +191,7 @@ export function errorInput(returnFunction, typeSend) {
   if (returnFunction instanceof String) {
     return {
       type: typeSend,
-      data: {content:`${returnFunction}`},
+      data: { content: `${returnFunction}` },
     };
   }
 }
