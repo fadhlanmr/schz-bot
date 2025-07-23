@@ -1,5 +1,5 @@
-import "dotenv/config";
 import { InstallGlobalCommands, InstallGuildCommands } from "./utils.js";
+import { env } from "cloudflare:workers";
 
 // thread command
 const THREAD_COMMAND = {
@@ -18,7 +18,7 @@ const THREAD_COMMAND = {
           description: "Which Board",
           required: true,
         },
-      ]
+      ],
     },
     {
       name: "list",
@@ -39,7 +39,7 @@ const THREAD_COMMAND = {
           min_value: 2,
           max_value: 25,
         },
-      ]
+      ],
     },
     {
       name: "general",
@@ -58,7 +58,7 @@ const THREAD_COMMAND = {
           description: "what general",
           required: true,
         },
-      ]
+      ],
     },
     {
       name: "search",
@@ -77,7 +77,7 @@ const THREAD_COMMAND = {
           description: "what",
           required: true,
         },
-      ]
+      ],
     },
   ],
   integration_types: [0, 1],
@@ -107,7 +107,7 @@ const REPLY_COMMAND = {
           description: "what thread",
           required: true,
         },
-      ]
+      ],
     },
     {
       name: "list",
@@ -134,7 +134,7 @@ const REPLY_COMMAND = {
           min_value: 2,
           max_value: 25,
         },
-      ]
+      ],
     },
     {
       name: "search",
@@ -159,17 +159,14 @@ const REPLY_COMMAND = {
           description: "what",
           required: true,
         },
-      ]
+      ],
     },
   ],
   integration_types: [0, 1],
   contexts: [0, 1, 2],
 };
 
-const ALL_COMMANDS = [
-  THREAD_COMMAND,
-  REPLY_COMMAND,
-];
+const ALL_COMMANDS = [THREAD_COMMAND, REPLY_COMMAND];
 
-InstallGuildCommands(process.env.APP_ID, process.env.GUILD_ID, ALL_COMMANDS);
-InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
+InstallGuildCommands(env.APP_ID, env.GUILD_ID, ALL_COMMANDS);
+InstallGlobalCommands(env.APP_ID, ALL_COMMANDS);
