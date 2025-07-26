@@ -1,30 +1,52 @@
 import { Hono } from "hono";
 import { InteractionType, InteractionResponseType } from "discord-interactions";
 import {
-  VerifyDiscordRequest,
   createThreadEmbed,
   createListThreadEmbed,
   createReplyEmbed,
   createListReplyEmbed,
 } from "./utils.js";
 import { getThreads, getReply, searchThreads, searchReply } from "./4ch.js";
-import { env } from "cloudflare:workers";
+import { verifyKey } from "discord-interactions";
+export const app = new Hono<{ Bindings: Cloudflare.Env }>();
 
-const app = new Hono();
+// app.use("*", async (c, next) => {
+//   const signature = c.req.header("x-signature-ed25519");
+//   const timestamp = c.req.header("x-signature-timestamp");
+//   console.log(signature, timestamp);
+//
+//   if (!signature || !timestamp) return c.text("Bad request", 400);
+//
+//   const body = await c.req.text();
+//   const isValid = VerifyDiscordRequest(
+//     body,
+//     signature,
+//     timestamp,
+//     c.env.PUBLIC_KEY,
+//   );
+//
+//   if (!isValid) return c.text("Unauthorized", 401);
+//
+//   c.set("body", body);
+//   await next();
+// });
 
-app.use("/interactions", async (c, next) => {
-  const body = await c.req.text();
-  console.log(body);
-  const verified = VerifyDiscordRequest(c.env.PUBLIC_KEY)(c.req, body);
-  if (!verified) {
-    return c.text("Unauthorized", 401);
-  }
-  c.set("body", JSON.parse(body));
-  await next();
+app.get("/", (c) => {
+  return c.text(`discord app ${c.env.APP_ID}`);
 });
 
 app.post("/interactions", async (c) => {
-  const { type, data } = await c.req.json();
+  const signature = c.req.header("x-signature-ed25519");
+  const timestamp = c.req.header("x-signature-timestamp");
+  const body = await c.req.text();
+  const isValidRequest =
+    signature &&
+    timestamp &&
+    (await verifyKey(body, signature, timestamp, c.env.PUBLIC_KEY));
+
+  if (!isValidRequest) return c.json({ error: "request invalid" }, 400);
+
+  const { type, data } = await JSON.parse(body);
 
   if (type === InteractionType.PING) {
     return c.json({ type: InteractionResponseType.PONG });
@@ -60,7 +82,7 @@ app.post("/interactions", async (c) => {
       let threadEmbed = createListThreadEmbed(
         board.value,
         selectThread,
-        limit.value
+        limit.value,
       );
       let threadPayloadData = {
         embeds: [threadEmbed],
@@ -106,7 +128,9 @@ app.post("/interactions", async (c) => {
           data: { content: `no such thread, try other word` },
         });
       }
-      const searchLength = selectSearch.length;
+      const searchLength = Array.isArray(selectSearch)
+        ? selectSearch.length
+        : 1;
       if (searchLength > 25) {
         return c.json({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -116,7 +140,7 @@ app.post("/interactions", async (c) => {
       let searchEmbed = createListThreadEmbed(
         board.value,
         selectSearch,
-        searchLength
+        searchLength,
       );
       let searchPayloadData = {
         embeds: [searchEmbed],
@@ -149,13 +173,13 @@ app.post("/interactions", async (c) => {
       const selectReply = await getReply(
         board.value,
         thread.value,
-        limit.value
+        limit.value,
       );
       let replyEmbed = createListReplyEmbed(
         board.value,
         thread.value,
         selectReply,
-        limit.value
+        limit.value,
       );
       let replyPayloadData = {
         embeds: [replyEmbed],
@@ -174,7 +198,7 @@ app.post("/interactions", async (c) => {
       const selectSearch = await searchReply(
         board.value,
         thread.value,
-        searchVal
+        searchVal,
       );
       if (!selectSearch) {
         return c.json({
@@ -197,7 +221,7 @@ app.post("/interactions", async (c) => {
           board.value,
           thread.value,
           selectSearch,
-          searchLength
+          searchLength,
         );
       }
       let searchPayloadData = {

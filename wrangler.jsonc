@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "schz-bot",
-  "main": "./app.js",
+  "main": "./app.ts",
   "compatibility_date": "2024-11-06",
   "routes": [
     {

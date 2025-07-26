@@ -21,6 +21,7 @@
         "wrangler": "^4.24.3"
     },
     "devDependencies": {
+        "@types/node": "^24.1.0",
         "nodemon": "^3.1.0"
     }
 }
