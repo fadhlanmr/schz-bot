@@ -39,7 +39,7 @@ console.log(getValas());
 
 export async function getThreads(boardParams, returnTopThread = false) {
   console.time('threadSearch')    
-    const endpoint = `https://a.4cdn.org/${boardParams}/catalog.json`;
+    const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/catalog.json`;
     const threadList = [];
   
     try {
@@ -105,7 +105,7 @@ console.log(getThreads("vt"));
 
 export async function getReply(boardParams, threadParams, limitParams) {
   console.time('replySearch')    
-  const endpoint = `https://a.4cdn.org/${boardParams}/thread/${threadParams}.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/thread/${threadParams}.json`;
   // map for reply check
   const idMap = new Map();
   let idRep = 0;

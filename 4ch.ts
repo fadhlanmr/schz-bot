@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 
 export async function getThreads(boardParams, limitParams) {
-  const endpoint = `https://a.4cdn.org/${boardParams}/catalog.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/catalog.json`;
   const threadList = [];
 
   try {
@@ -60,7 +60,7 @@ export async function getThreads(boardParams, limitParams) {
 }
 
 export async function getReply(boardParams, threadParams, limitParams) {
-  const endpoint = `https://a.4cdn.org/${boardParams}/thread/${threadParams}.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/thread/${threadParams}.json`;
   // map for reply check
   const idMap = new Map();
   const topReply = [];
@@ -140,7 +140,7 @@ export async function getReply(boardParams, threadParams, limitParams) {
 }
 
 export async function searchThreads(boardParams, searchWord, isGeneral) {
-  const endpoint = `https://a.4cdn.org/${boardParams}/catalog.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/catalog.json`;
   const threadList = [];
 
   try {
@@ -206,7 +206,7 @@ export async function searchThreads(boardParams, searchWord, isGeneral) {
 }
 
 export async function searchReply(boardParams, threadParams, searchWord) {
-  const endpoint = `https://a.4cdn.org/${boardParams}/thread/${threadParams}.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/thread/${threadParams}.json`;
   // map for reply check
   const idMap = new Map();
   const replyList = [];

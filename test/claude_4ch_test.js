@@ -78,7 +78,7 @@ export async function getThreads(boardId, limit = 1) {
   }
 
   try {
-    const data = await retryFetch(`https://a.4cdn.org/${boardId}/catalog.json`);
+    const data = await retryFetch(`https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardId}/catalog.json`);
 
     const threads = data
       .flatMap((page) =>
@@ -121,7 +121,7 @@ export async function getReply(boardId, threadId, limit = 1) {
 
   try {
     const data = await retryFetch(
-      `https://a.4cdn.org/${boardId}/thread/${threadId}.json`
+      `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardId}/thread/${threadId}.json`
     );
 
     const replies = new Map();
