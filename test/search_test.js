@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 
 export async function searchGeneral(boardParams, searchWord) {
-  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/catalog.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardParams}/catalog.json`;
   const threadList = [];
 
   try {
@@ -42,7 +42,7 @@ export async function searchGeneral(boardParams, searchWord) {
       image: "",
     };
     if (resultThread.filename) {
-      returnThread.image = `https://i.4cdn.org/${boardParams}/${resultThread.file}`;
+      returnThread.image = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${resultThread.file}`;
     }
     if (resultThread.title) {
       returnThread.name = `${htmlclean(resultThread.title)} - ${resultThread.thread}`;
@@ -57,7 +57,7 @@ export async function searchGeneral(boardParams, searchWord) {
 }
 
 export async function searchThreads(boardParams, searchWord) {
-  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/catalog.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardParams}/catalog.json`;
   const threadList = [];
 
   try {
@@ -104,7 +104,7 @@ export async function searchThreads(boardParams, searchWord) {
 }
 
 export async function searchTitle(boardParams, searchWord, isGeneral = false) {
-    const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/catalog.json`;
+    const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardParams}/catalog.json`;
     const threadList = [];
     const searchLower = searchWord.toLowerCase();
   
@@ -153,7 +153,7 @@ export async function searchTitle(boardParams, searchWord, isGeneral = false) {
             image: "",
         };
         if (resultThread.filename) {
-            returnThread.image = `https://i.4cdn.org/${boardParams}/${resultThread.file}`;
+            returnThread.image = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${resultThread.file}`;
         }
         if (resultThread.title) {
             returnThread.name = `${htmlclean(resultThread.title)} - ${resultThread.thread}`;
@@ -180,7 +180,7 @@ export async function searchTitle(boardParams, searchWord, isGeneral = false) {
 // searchTitle("vg", "zzz", false)
 
 export async function searchReply(boardParams, threadParams, searchWord) {
-  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/thread/${threadParams}.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardParams}/thread/${threadParams}.json`;
   // map for reply check
   const idMap = new Map();
   let idRep = 0;
@@ -240,14 +240,14 @@ export async function searchReply(boardParams, threadParams, searchWord) {
     if(limitResult<2) {
       let resultReply = replyList[0];
       resultReply.reply=idMap.get(resultReply.id);
-      resultReply.image=`https://i.4cdn.org/${boardParams}/${resultReply.file}`;
+      resultReply.image=`https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${resultReply.file}`;
       console.log(resultReply);
     }
     else {
       let resultReply = []
       for (let index = 0; index < limitResult; index++) {
         replyList[index].reply=idMap.get(replyList[index].id)
-        replyList[index].image=`https://i.4cdn.org/${boardParams}/${replyList[index].file}`
+        replyList[index].image=`https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${replyList[index].file}`
         resultReply.push(replyList[index]);
     }
     console.log(resultReply)

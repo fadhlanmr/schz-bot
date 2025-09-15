@@ -78,7 +78,7 @@ export async function getThreads(boardId, limit = 1) {
   }
 
   try {
-    const data = await retryFetch(`https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardId}/catalog.json`);
+    const data = await retryFetch(`https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardId}/catalog.json`);
 
     const threads = data
       .flatMap((page) =>
@@ -90,7 +90,7 @@ export async function getThreads(boardId, limit = 1) {
           body: truncateText(thread.com),
           reply: thread.replies,
           image: thread.tim
-            ? `https://i.4cdn.org/${boardId}/${thread.tim}${thread.ext}`
+            ? `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardId}/${thread.tim}${thread.ext}`
             : "",
           url: `https://boards.4channel.org/${boardId}/thread/${thread.no}`,
         }))
@@ -121,7 +121,7 @@ export async function getReply(boardId, threadId, limit = 1) {
 
   try {
     const data = await retryFetch(
-      `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardId}/thread/${threadId}.json`
+      `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardId}/thread/${threadId}.json`
     );
 
     const replies = new Map();
@@ -135,7 +135,7 @@ export async function getReply(boardId, threadId, limit = 1) {
         time: post.time,
         reply: 0,
         image: post.tim
-          ? `https://i.4cdn.org/${boardId}/${post.tim}${post.ext}`
+          ? `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardId}/${post.tim}${post.ext}`
           : "",
         url: `https://boards.4channel.org/${boardId}/thread/${threadId}#p${post.no}`,
       };

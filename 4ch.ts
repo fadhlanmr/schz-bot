@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
 
 export async function getThreads(boardParams, limitParams) {
-  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/catalog.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardParams}/catalog.json`;
   const threadList = [];
 
   try {
@@ -42,7 +42,7 @@ export async function getThreads(boardParams, limitParams) {
         image: "",
       };
       if (resultThread.filename) {
-        returnThread.image = `https://i.4cdn.org/${boardParams}/${resultThread.file}`;
+        returnThread.image = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${resultThread.file}`;
       }
       if (resultThread.title) {
         returnThread.name = `${htmlclean(resultThread.title)} - ${resultThread.thread}`;
@@ -60,7 +60,7 @@ export async function getThreads(boardParams, limitParams) {
 }
 
 export async function getReply(boardParams, threadParams, limitParams) {
-  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/thread/${threadParams}.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardParams}/thread/${threadParams}.json`;
   // map for reply check
   const idMap = new Map();
   const topReply = [];
@@ -121,7 +121,7 @@ export async function getReply(boardParams, threadParams, limitParams) {
       let pos = topReply.map((e) => e.id).indexOf(sortedMap[0][0]);
       topReply[pos].reply = sortedMap[0][1];
       topReply[pos].image =
-        `https://i.4cdn.org/${boardParams}/${topReply[pos].file}`;
+        `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${topReply[pos].file}`;
       return topReply[pos];
     } else {
       let resultReply = [];
@@ -129,7 +129,7 @@ export async function getReply(boardParams, threadParams, limitParams) {
         let pos = topReply.map((e) => e.id).indexOf(sortedMap[index][0]);
         topReply[pos].reply = sortedMap[index][1];
         topReply[pos].image =
-          `https://i.4cdn.org/${boardParams}/${topReply[pos].file}`;
+          `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${topReply[pos].file}`;
         resultReply.push(topReply[pos]);
       }
       return resultReply;
@@ -140,7 +140,7 @@ export async function getReply(boardParams, threadParams, limitParams) {
 }
 
 export async function searchThreads(boardParams, searchWord, isGeneral) {
-  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/catalog.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardParams}/catalog.json`;
   const threadList = [];
 
   try {
@@ -188,7 +188,7 @@ export async function searchThreads(boardParams, searchWord, isGeneral) {
         image: "",
       };
       if (resultThread.filename) {
-        returnThread.image = `https://i.4cdn.org/${boardParams}/${resultThread.file}`;
+        returnThread.image = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${resultThread.file}`;
       }
       if (resultThread.title) {
         returnThread.name = `${htmlclean(resultThread.title)} - ${resultThread.thread}`;
@@ -206,7 +206,7 @@ export async function searchThreads(boardParams, searchWord, isGeneral) {
 }
 
 export async function searchReply(boardParams, threadParams, searchWord) {
-  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/thread/${threadParams}.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardParams}/thread/${threadParams}.json`;
   // map for reply check
   const idMap = new Map();
   const replyList = [];
@@ -268,14 +268,14 @@ export async function searchReply(boardParams, threadParams, searchWord) {
     if (limitResult < 2) {
       let resultReply = replyList[0];
       resultReply.reply = idMap.get(resultReply.id);
-      resultReply.image = `https://i.4cdn.org/${boardParams}/${resultReply.file}`;
+      resultReply.image = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${resultReply.file}`;
       return resultReply;
     } else {
       let resultReply = [];
       for (let index = 0; index < limitResult; index++) {
         replyList[index].reply = idMap.get(replyList[index].id);
         replyList[index].image =
-          `https://i.4cdn.org/${boardParams}/${replyList[index].file}`;
+          `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${replyList[index].file}`;
         resultReply.push(replyList[index]);
       }
       return resultReply;

@@ -39,7 +39,7 @@ console.log(getValas());
 
 export async function getThreads(boardParams, returnTopThread = false) {
   console.time('threadSearch')    
-    const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/catalog.json`;
+    const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardParams}/catalog.json`;
     const threadList = [];
   
     try {
@@ -81,7 +81,7 @@ export async function getThreads(boardParams, returnTopThread = false) {
           image: "",
         };
         if (resultThread.filename) {
-          returnThread.image = `https://i.4cdn.org/${boardParams}/${resultThread.file}`;
+          returnThread.image = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${resultThread.file}`;
         }
         if (resultThread.title) {
           returnThread.name = `${htmlclean(resultThread.title)} - ${resultThread.thread}`;
@@ -105,7 +105,7 @@ console.log(getThreads("vt"));
 
 export async function getReply(boardParams, threadParams, limitParams) {
   console.time('replySearch')    
-  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/${boardParams}/thread/${threadParams}.json`;
+  const endpoint = `https://kong-4c1a7dd269uspw8z7.kongcloud.dev/a/${boardParams}/thread/${threadParams}.json`;
   // map for reply check
   const idMap = new Map();
   let idRep = 0;
@@ -164,7 +164,7 @@ export async function getReply(boardParams, threadParams, limitParams) {
       let topMap = [...idMap.entries()].reduce((a, e ) => e[1] > a[1] ? e : a)
       let pos = topReply.map((e) => e.id).indexOf(topMap[0]);
       topReply[pos].reply=topMap[1];
-      topReply[pos].image=`https://i.4cdn.org/${boardParams}/${topReply[pos].file}`
+      topReply[pos].image=`https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${topReply[pos].file}`
       console.timeEnd('replySearch')
       return topReply[pos];
     }
@@ -174,7 +174,7 @@ export async function getReply(boardParams, threadParams, limitParams) {
       for (let index = 0; index < limitParams; index++) {
         let pos = topReply.map((e) => e.id).indexOf(sortedMap[index][0]);
         topReply[pos].reply=sortedMap[index][1];
-        topReply[pos].image=`https://i.4cdn.org/${boardParams}/${topReply[pos].file}`
+        topReply[pos].image=`https://kong-4c1a7dd269uspw8z7.kongcloud.dev/i.org/${boardParams}/${topReply[pos].file}`
         resultReply.push(topReply[pos]);
     }
     console.timeEnd('replySearch')

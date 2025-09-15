@@ -77,7 +77,7 @@ export function createThreadEmbed(board, thread) {
     url: `https://boards.4channel.org/${board}/thread/${thread.thread}`,
     footer: {
       text: `${thread.reply} interactions`,
-      icon_url: "https://s.4cdn.org/image/foundericon.gif",
+      icon_url: "https://kong-4c1a7dd269uspw8z7.kongcloud.dev/s.org/image/foundericon.gif",
     },
     image: {
       url: thread.image,
@@ -118,7 +118,7 @@ export function createListThreadEmbed(board, threadData, limit) {
     url: `https://boards.4channel.org/${board}`,
     footer: {
       text: `${threadCount} Thread(s)`,
-      icon_url: "https://s.4cdn.org/image/foundericon.gif",
+      icon_url: "https://kong-4c1a7dd269uspw8z7.kongcloud.dev/s.org/image/foundericon.gif",
     },
     fields: embedThreadList(threadData, limit),
   };
@@ -135,7 +135,7 @@ export function createReplyEmbed(replyData) {
     url: replyData.url,
     footer: {
       text: `${replyData.reply} mentions`,
-      icon_url: "https://s.4cdn.org/image/foundericon.gif",
+      icon_url: "https://kong-4c1a7dd269uspw8z7.kongcloud.dev/s.org/image/foundericon.gif",
     },
     image: {
       url: replyData.image,
@@ -181,7 +181,7 @@ export function createListReplyEmbed(board, thread, replyData, limit) {
     url: `https://boards.4channel.org/${board}/thread/${thread}`,
     footer: {
       text: `${replyCount} Replies`,
-      icon_url: "https://s.4cdn.org/image/foundericon.gif",
+      icon_url: "https://kong-4c1a7dd269uspw8z7.kongcloud.dev/s.org/image/foundericon.gif",
     },
     fields: embedReplyList(replyData, limit),
   };
