@@ -317,7 +317,7 @@ export function createReplyButtonRow(board, thread) {
     components: [{
       type: MessageComponentTypes.BUTTON,
       style: ButtonStyleTypes.PRIMARY,
-      label: "Reply",
+      label: "Get Reply",
       custom_id: `schz:th_reply:${board}:${thread}`,
     }],
   };
@@ -330,7 +330,7 @@ export function createListReplyButtonRow(board, limit, query) {
     components: [{
       type: MessageComponentTypes.BUTTON,
       style: ButtonStyleTypes.PRIMARY,
-      label: "Reply",
+      label: "Get reply to list",
       custom_id: `schz:th_reply_list:${board}:${limit}:${String(query).slice(0, CUSTOM_QUERY_LIMIT)}`,
     }],
   };
@@ -341,13 +341,13 @@ export function createReplyControlRows(board, thread, mode, arg) {
   let replyTop = {
     type: MessageComponentTypes.BUTTON,
     style: ButtonStyleTypes.PRIMARY,
-    label: "Reply Top",
+    label: "Top Reply",
     custom_id: replyCustomId("rp_top", board, thread, mode, arg),
   };
   let replyList = {
     type: MessageComponentTypes.BUTTON,
     style: ButtonStyleTypes.SECONDARY,
-    label: "Reply List",
+    label: "List Reply (how much)",
     custom_id: replyCustomId("rp_list", board, thread, mode, arg),
   };
   const rowList = [{
