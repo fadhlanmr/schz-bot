@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { topicWords } from "./context.js";
 
 export async function getThreads(boardParams, limitParams) {
   const threadList = [];
@@ -148,6 +149,81 @@ export async function searchReply(boardParams, threadParams, searchWord) {
   }
 }
 
+// accept one board or a comma-separated list, keep each board only once
+export function parseBoards(boardParams) {
+  const values = Array.isArray(boardParams) ? boardParams : String(boardParams || "").split(",");
+  const boards = [...new Set(values.map((board) => String(board).trim().toLowerCase().replace(/^\/+|\/+$/g, "")))];
+  if (!boards.length || boards.some((board) => !/^[a-z0-9]{1,10}$/.test(board))) {
+    throw new Error("board should be a board name, like g or vip; separate multiple boards with commas");
+  }
+  if (boards.length > 3) throw new Error("choose 1 to 3 unique boards");
+  return boards;
+}
+
+// keyword matches share one weighted pool across all requested boards
+export async function getContextReply(boardParams, keywords, request = fetch) {
+  const boards = parseBoards(boardParams);
+  const catalogs = await Promise.allSettled(boards.map((board) => fetchCatalog(board, request)));
+  if (catalogs.every((result) => result.status === "rejected")) throw catalogs[0].reason;
+  let matches = [];
+  catalogs.forEach((result, index) => {
+    const board = boards[index];
+    if (result.status === "rejected") {
+      console.error(`could not fetch /${board}/ catalog`, result.reason.message);
+      return;
+    }
+    result.value.forEach((page) => {
+      page.threads.forEach((thread) => {
+        if (!thread.replies) return;
+        const title = new Set(topicWords(htmlclean(thread.sub || "")));
+        const body = new Set(topicWords(htmlclean(thread.com || "")));
+        let score = 0;
+        keywords.forEach((item) => {
+          if (title.has(item.word)) score += item.weight * 2;
+          if (body.has(item.word)) score += item.weight;
+        });
+        if (score) matches.push({ board: board, thread: thread.no, score: score });
+      });
+    });
+  });
+
+  // try up to three matches per board, so one textless board cannot use every try
+  const attempts = new Map();
+  let lastError;
+  while (matches.length) {
+    const total = matches.reduce((sum, item) => sum + item.score, 0);
+    let roll = Math.random() * total;
+    let index = matches.length - 1;
+    for (let item = 0; item < matches.length; item++) {
+      roll -= matches[item].score;
+      if (roll < 0) {
+        index = item;
+        break;
+      }
+    }
+    const selected = matches.splice(index, 1)[0];
+    const tried = (attempts.get(selected.board) || 0) + 1;
+    attempts.set(selected.board, tried);
+    if (tried === 3) matches = matches.filter((item) => item.board !== selected.board);
+    let posts;
+    try {
+      posts = await fetchThreadPosts(selected.board, selected.thread, request);
+    } catch (err) {
+      if (err.status === 404) continue;
+      lastError = err;
+      matches = matches.filter((item) => item.board !== selected.board);
+      continue;
+    }
+    const replies = buildReplyList(selected.board, selected.thread, posts).filter((reply) => {
+      const text = htmlclean(reply.body || "").replace(/>>\d+/g, "").trim();
+      return String(reply.id) !== String(selected.thread) && text.length > 0;
+    });
+    if (replies.length) return { ...replies[Math.floor(Math.random() * replies.length)], board: selected.board };
+  }
+  if (lastError) throw lastError;
+  return null;
+}
+
 // shape one catalog thread to the single thread embed shape
 function shapeThread(boardParams, threadObj) {
   let returnThread = {
@@ -215,10 +291,11 @@ function buildReplyList(boardParams, threadParams, posts) {
   return replyList;
 }
 
-async function fetchCatalog(boardParams) {
+async function fetchCatalog(boardParams, request = fetch) {
   const endpoint = `https://a.4cdn.org/${boardParams}/catalog.json`;
-  const res = await fetch(endpoint, {
+  const res = await request(endpoint, {
     method: "GET",
+    signal: AbortSignal.timeout(5000),
     headers: {
       "Content-Type": "application/json",
     },
@@ -231,10 +308,11 @@ async function fetchCatalog(boardParams) {
   return await res.json();
 }
 
-async function fetchThreadPosts(boardParams, threadParams) {
+async function fetchThreadPosts(boardParams, threadParams, request = fetch) {
   const endpoint = `https://a.4cdn.org/${boardParams}/thread/${threadParams}.json`;
-  const res = await fetch(endpoint, {
+  const res = await request(endpoint, {
     method: "GET",
+    signal: AbortSignal.timeout(5000),
     headers: {
       "Content-Type": "application/json",
     },
@@ -242,8 +320,9 @@ async function fetchThreadPosts(boardParams, threadParams) {
   if (!res.ok) {
     console.log(res.status);
     // 4chan error body is not always json, so only the status is logged
-    throw new Error(`4chan api error ${res.status}`);
-    // return "not a thread, or error input";
+    const err = new Error(`4chan api error ${res.status}`);
+    err.status = res.status;
+    throw err;
   }
   const data = await res.json();
   return data.posts;

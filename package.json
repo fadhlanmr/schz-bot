@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node app.js",
     "register": "node commands.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "test": "node --test test/schizo_test.js && node test/component_test.js"
   },
   "author": "Padlan",
   "license": "MIT",

@@ -24,6 +24,7 @@ import {
   searchThreads,
   searchReply
 } from './4ch.js';
+import { isSchizoCommand, respondSchizo } from './schizo.js';
 
 // Create an express app
 const app = express();
@@ -44,6 +45,17 @@ app.post('/interactions', async function (req, res) {
    */
   if (type === InteractionType.PING) {
     return res.send({ type: InteractionResponseType.PONG });
+  }
+
+  // acknowledge before fetching chat, 4chan or the model
+  if (type === InteractionType.APPLICATION_COMMAND && isSchizoCommand(data)) {
+    res.send({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE });
+    try {
+      await respondSchizo(req.body);
+    } catch (err) {
+      console.error('could not finish schizo response', err.message);
+    }
+    return;
   }
 
   // Log request bodies
