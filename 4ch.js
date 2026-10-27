@@ -160,7 +160,35 @@ export function parseBoards(boardParams) {
   return boards;
 }
 
-// keyword matches share one weighted pool across all requested boards
+// count distinct hits first, context weight only breaks ties
+function scoreWords(words, keywords) {
+  let hits = 0;
+  let weight = 0;
+  keywords.forEach((item) => {
+    if (words.has(item.word)) {
+      hits++;
+      weight += item.weight;
+    }
+  });
+  return { hits: hits, weight: weight };
+}
+
+function replyText(body) {
+  return htmlclean(body || "").replace(/>>\d+/g, "").trim();
+}
+
+// keep the previous weighted-random selection for the zero-hit fallback
+function randomThread(matches) {
+  const total = matches.reduce((sum, item) => sum + item.score, 0);
+  let roll = Math.random() * total;
+  for (const item of matches) {
+    roll -= item.score;
+    if (roll < 0) return item;
+  }
+  return matches[matches.length - 1];
+}
+
+// rank threads across all boards, then rank replies against the same chat keywords
 export async function getContextReply(boardParams, keywords, request = fetch) {
   const boards = parseBoards(boardParams);
   const catalogs = await Promise.allSettled(boards.map((board) => fetchCatalog(board, request)));
@@ -177,31 +205,28 @@ export async function getContextReply(boardParams, keywords, request = fetch) {
         if (!thread.replies) return;
         const title = new Set(topicWords(htmlclean(thread.sub || "")));
         const body = new Set(topicWords(htmlclean(thread.com || "")));
-        let score = 0;
-        keywords.forEach((item) => {
-          if (title.has(item.word)) score += item.weight * 2;
-          if (body.has(item.word)) score += item.weight;
+        const score = scoreWords(new Set([...title, ...body]), keywords);
+        const titleScore = scoreWords(title, keywords);
+        const bodyScore = scoreWords(body, keywords);
+        if (score.hits) matches.push({
+          board: board,
+          thread: thread.no,
+          hits: score.hits,
+          weight: score.weight,
+          titleHits: titleScore.hits,
+          score: titleScore.weight * 2 + bodyScore.weight,
         });
-        if (score) matches.push({ board: board, thread: thread.no, score: score });
       });
     });
   });
+  matches.sort((a, b) => b.hits - a.hits || b.weight - a.weight || b.titleHits - a.titleHits);
 
-  // try up to three matches per board, so one textless board cannot use every try
+  // check up to three ranked threads per board before using a random fallback
   const attempts = new Map();
+  const fallbacks = [];
   let lastError;
   while (matches.length) {
-    const total = matches.reduce((sum, item) => sum + item.score, 0);
-    let roll = Math.random() * total;
-    let index = matches.length - 1;
-    for (let item = 0; item < matches.length; item++) {
-      roll -= matches[item].score;
-      if (roll < 0) {
-        index = item;
-        break;
-      }
-    }
-    const selected = matches.splice(index, 1)[0];
+    const selected = matches.shift();
     const tried = (attempts.get(selected.board) || 0) + 1;
     attempts.set(selected.board, tried);
     if (tried === 3) matches = matches.filter((item) => item.board !== selected.board);
@@ -214,11 +239,18 @@ export async function getContextReply(boardParams, keywords, request = fetch) {
       matches = matches.filter((item) => item.board !== selected.board);
       continue;
     }
-    const replies = buildReplyList(selected.board, selected.thread, posts).filter((reply) => {
-      const text = htmlclean(reply.body || "").replace(/>>\d+/g, "").trim();
-      return String(reply.id) !== String(selected.thread) && text.length > 0;
-    });
-    if (replies.length) return { ...replies[Math.floor(Math.random() * replies.length)], board: selected.board };
+    const replies = buildReplyList(selected.board, selected.thread, posts)
+      .filter((reply) => String(reply.id) !== String(selected.thread) && replyText(reply.body).length > 0);
+    const rankedReplies = replies.map((reply) => ({
+      reply: reply,
+      ...scoreWords(new Set(topicWords(replyText(reply.body))), keywords),
+    })).sort((a, b) => b.hits - a.hits || b.weight - a.weight || b.reply.reply - a.reply.reply);
+    if (rankedReplies[0]?.hits > 0) return { ...rankedReplies[0].reply, board: selected.board };
+    if (replies.length) fallbacks.push({ ...selected, replies: replies });
+  }
+  if (fallbacks.length) {
+    const selected = randomThread(fallbacks);
+    return { ...selected.replies[Math.floor(Math.random() * selected.replies.length)], board: selected.board };
   }
   if (lastError) throw lastError;
   return null;

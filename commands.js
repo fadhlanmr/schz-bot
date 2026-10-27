@@ -177,7 +177,7 @@ const SCHIZO_COMMAND = {
       description: "Where the response comes from, default thread",
       type: 3,
       choices: [
-        { name: "Random thread reply", value: "thread" },
+        { name: "Matching thread reply", value: "thread" },
         { name: "LLM response", value: "llm" },
       ],
     },

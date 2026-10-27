@@ -151,7 +151,7 @@ test("thread mode excludes OP, image-only, empty and reference-only posts", asyn
   assert.equal(reply.url, "https://boards.4chan.org/g/thread/100#p104");
 });
 
-test("random reply selection can choose the last text reply", async (t) => {
+test("random fallback can choose the last text reply when none has word hits", async (t) => {
   t.mock.method(Math, "random", () => 0.999);
   const reply = await getContextReply("g", [{ word: "audio", weight: 1 }], async (url) => {
     if (url.endsWith("catalog.json")) return response([{ threads: [{ no: 100, com: "Audio", replies: 2 }] }]);
@@ -160,8 +160,8 @@ test("random reply selection can choose the last text reply", async (t) => {
   assert.equal(reply.id, 102);
 });
 
-test("keyword weights and titles influence random thread selection", async (t) => {
-  t.mock.method(Math, "random", () => 0.5);
+test("context keyword weight breaks tied thread hit counts", async (t) => {
+  t.mock.method(Math, "random", () => assert.fail("a matching reply should not use random selection"));
   const reply = await getContextReply("g", [{ word: "linux", weight: 1 }, { word: "audio", weight: 6 }], async (url) => {
     if (url.endsWith("catalog.json")) {
       return response([{ threads: [{ no: 100, com: "linux", replies: 1 }, { no: 200, sub: "Audio", replies: 1 }] }]);
@@ -170,6 +170,141 @@ test("keyword weights and titles influence random thread selection", async (t) =
     return response({ posts: [{ no: 200, com: "OP" }, { no: 201, com: "audio reply" }] });
   });
   assert.equal(reply.id, 201);
+});
+
+test("thread ranking favors distinct word hits over repetition and context weight", async (t) => {
+  t.mock.method(Math, "random", () => assert.fail("ranked matches should not use randomness"));
+  const reply = await getContextReply("g", [
+    { word: "haunted", weight: 6 }, { word: "linux", weight: 1 }, { word: "audio", weight: 1 },
+  ], async (url) => {
+    if (url.endsWith("catalog.json")) return response([{ threads: [
+      { no: 100, sub: "haunted ".repeat(20), com: "haunted", replies: 1 },
+      { no: 200, sub: "linux", com: "audio", replies: 1 },
+    ] }]);
+    assert.ok(url.endsWith("/200.json"));
+    return response({ posts: [{ no: 200, com: "OP" }, { no: 201, com: "linux audio" }] });
+  });
+  assert.equal(reply.id, 201);
+});
+
+test("title hits break thread ties after distinct hits and context weight", async () => {
+  const reply = await getContextReply("g", [{ word: "linux", weight: 1 }, { word: "audio", weight: 1 }], async (url) => {
+    if (url.endsWith("catalog.json")) return response([{ threads: [
+      { no: 100, com: "linux audio", replies: 1 },
+      { no: 200, sub: "linux", com: "audio", replies: 1 },
+    ] }]);
+    assert.ok(url.endsWith("/200.json"));
+    return response({ posts: [{ no: 200, com: "OP" }, { no: 201, com: "linux" }] });
+  });
+  assert.equal(reply.id, 201);
+});
+
+test("reply ranking uses most distinct hits, cleaned HTML and whole words", async () => {
+  const reply = await getContextReply("g", [
+    { word: "haunted", weight: 6 }, { word: "linux", weight: 1 }, { word: "audio", weight: 1 },
+  ], async (url) => {
+    if (url.endsWith("catalog.json")) return response([{ threads: [{ no: 100, sub: "linux audio haunted", replies: 4 }] }]);
+    return response({ posts: [
+      { no: 100, com: "linux audio haunted OP must not win" },
+      { no: 101, com: "haunted ".repeat(30) },
+      { no: 102, com: '<span class="quote">LINUX</span><br>audio &amp; noise' },
+      { no: 103, com: '<a href="https://example.com/linux/audio">hauntedness linuxish audiophile</a>' },
+      { no: 104, com: '&gt;&gt;102<br><a class="quotelink">&gt;&gt;100</a>' },
+    ] });
+  });
+  assert.equal(reply.id, 102);
+});
+
+test("selected-message keyword weight breaks tied reply hit counts", async () => {
+  const reply = await getContextReply("g", [{ word: "linux", weight: 1 }, { word: "haunted", weight: 6 }], async (url) => {
+    if (url.endsWith("catalog.json")) return response([{ threads: [{ no: 100, sub: "linux haunted", replies: 3 }] }]);
+    return response({ posts: [
+      { no: 100, com: "OP" },
+      { no: 101, com: "linux" },
+      { no: 102, com: "haunted" },
+      { no: 103, com: "&gt;&gt;101" },
+    ] });
+  });
+  assert.equal(reply.id, 102);
+});
+
+test("mention count breaks equal reply scores without rewarding repeated words", async () => {
+  const reply = await getContextReply("g", [{ word: "linux", weight: 1 }], async (url) => {
+    if (url.endsWith("catalog.json")) return response([{ threads: [{ no: 100, sub: "linux", replies: 3 }] }]);
+    return response({ posts: [
+      { no: 100, com: "OP" },
+      { no: 101, com: "linux ".repeat(30) },
+      { no: 102, com: "linux" },
+      { no: 103, com: "&gt;&gt;102" },
+    ] });
+  });
+  assert.equal(reply.id, 102);
+  assert.equal(reply.reply, 1);
+});
+
+test("zero-hit replies in the top thread yield to a hit in the next ranked thread", async (t) => {
+  t.mock.method(Math, "random", () => assert.fail("a later matching reply should beat random fallback"));
+  const paths = [];
+  const reply = await getContextReply("g,vg", [{ word: "linux", weight: 1 }, { word: "audio", weight: 1 }], async (url) => {
+    if (url.endsWith("/g/catalog.json")) return response([{ threads: [{ no: 100, sub: "linux audio", replies: 1 }] }]);
+    if (url.endsWith("/vg/catalog.json")) return response([{ threads: [{ no: 200, sub: "linux", replies: 1 }] }]);
+    paths.push(url);
+    if (url.endsWith("/100.json")) return response({ posts: [{ no: 100, com: "OP" }, { no: 101, com: "buy a new computer" }] });
+    return response({ posts: [{ no: 200, com: "OP" }, { no: 201, com: "linux drivers" }] });
+  });
+  assert.deepEqual(paths, ["https://a.4cdn.org/g/thread/100.json", "https://a.4cdn.org/vg/thread/200.json"]);
+  assert.equal(reply.id, 201);
+  assert.equal(reply.board, "vg");
+});
+
+test("the best matching reply comes from the highest-ranked usable thread first", async () => {
+  const reply = await getContextReply("g", [{ word: "linux", weight: 1 }, { word: "audio", weight: 1 }], async (url) => {
+    if (url.endsWith("catalog.json")) return response([{ threads: [
+      { no: 100, sub: "linux audio", replies: 1 },
+      { no: 200, sub: "linux", replies: 1 },
+    ] }]);
+    assert.ok(url.endsWith("/100.json"));
+    return response({ posts: [{ no: 100, com: "OP" }, { no: 101, com: "linux" }] });
+  });
+  assert.equal(reply.id, 101);
+});
+
+test("zero-hit fallback keeps weighted thread and uniform reply randomness without refetching", async (t) => {
+  const rolls = [0.8, 0.999];
+  t.mock.method(Math, "random", () => {
+    assert.ok(rolls.length, "only fallback selection should use randomness");
+    return rolls.shift();
+  });
+  const paths = [];
+  const reply = await getContextReply("g,vg", [{ word: "linux", weight: 1 }, { word: "audio", weight: 6 }], async (url) => {
+    paths.push(url);
+    if (url.endsWith("catalog.json")) {
+      return response([{ threads: [{ no: 100, sub: url.includes("/vg/") ? "audio" : "linux", replies: 2 }] }]);
+    }
+    return response({ posts: [{ no: 100, com: "OP" }, { no: 101, com: "first" }, { no: 102, com: "last" }] });
+  });
+  // /vg/ has 12/14 of the old weighted score, so a 0.8 roll still picks it
+  assert.equal(reply.board, "vg");
+  assert.equal(reply.id, 102);
+  assert.equal(paths.length, 4);
+  assert.equal(new Set(paths).size, 4);
+  assert.equal(rolls.length, 0);
+});
+
+test("ranked lookup stays bounded and preserves a usable fallback after later errors", async (t) => {
+  t.mock.method(Math, "random", () => 0);
+  const paths = [];
+  const reply = await getContextReply("g,vg", [{ word: "linux", weight: 1 }], async (url) => {
+    if (url.endsWith("catalog.json")) return response([{ threads: [100, 200, 300, 400].map((no) => ({ no: no, sub: "linux", replies: 1 })) }]);
+    paths.push(url);
+    if (url.includes("/vg/")) return response(null, 503);
+    const no = Number(url.match(/\/(\d+)\.json$/)[1]);
+    return response({ posts: [{ no: no, com: "OP" }, { no: no + 1, com: "fallback reply" }] });
+  });
+  assert.equal(paths.length, 4);
+  assert.ok(!paths.some((path) => path.endsWith("/400.json")));
+  assert.equal(reply.board, "g");
+  assert.equal(reply.id, 101);
 });
 
 test("deleted and textless threads are skipped for another matching thread", async (t) => {
@@ -226,8 +361,8 @@ test("single-board array returns the correct source board and link", async () =>
   assert.equal(reply.url, "https://boards.4chan.org/g/thread/100#p101");
 });
 
-test("multiple boards share a relevance-weighted pool and preserve board identity", async (t) => {
-  t.mock.method(Math, "random", () => 0.5);
+test("multiple boards share one thread ranking and preserve board identity", async (t) => {
+  t.mock.method(Math, "random", () => assert.fail("a matching reply should not use random selection"));
   const urls = [];
   const reply = await getContextReply("g,vg", [{ word: "linux", weight: 1 }, { word: "audio", weight: 6 }], async (url) => {
     urls.push(url);
@@ -235,7 +370,7 @@ test("multiple boards share a relevance-weighted pool and preserve board identit
       return response([{ threads: [{ no: 100, sub: url.includes("/vg/") ? "audio" : "linux", replies: 1 }] }]);
     }
     assert.equal(url, "https://a.4cdn.org/vg/thread/100.json");
-    return response({ posts: [{ no: 100, com: "OP" }, { no: 101, com: "reply", filename: "pic", tim: 123, ext: ".jpg" }] });
+    return response({ posts: [{ no: 100, com: "OP" }, { no: 101, com: "audio reply", filename: "pic", tim: 123, ext: ".jpg" }] });
   });
   assert.ok(urls.includes("https://a.4cdn.org/g/catalog.json"));
   assert.ok(urls.includes("https://a.4cdn.org/vg/catalog.json"));
@@ -283,7 +418,7 @@ test("textless matches cannot exhaust another board's attempts", async (t) => {
     }
     threadRequests++;
     const no = Number(url.match(/\/(\d+)\.json$/)[1]);
-    return response({ posts: [{ no: no, com: "OP" }, { no: no + 1, com: url.includes("/v/") ? "usable reply" : "" }] });
+    return response({ posts: [{ no: no, com: "OP" }, { no: no + 1, com: url.includes("/v/") ? "linux usable reply" : "" }] });
   });
   assert.equal(threadRequests, 7);
   assert.equal(reply.board, "v");
